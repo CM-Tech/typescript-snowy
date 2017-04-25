@@ -1,37 +1,38 @@
 {
-  "name": "typescript-snowy",
-  "version": "0.0.1",
-  "description": "A skiing .io game.",
-  "main": "src/server.js",
-  "engines": {
-    "node": "~5.6"
-  },
-  "scripts": {
-    "test": "echo \"no test here\"",
-    "start": "ts-node src/server.ts"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CM-Tech/typescript-snowy.git"
-  },
-  "keywords": [
-    "typescript",
-    "game"
-  ],
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/CM-Tech/typescript-snowy/issues"
-  },
-  "homepage": "https://github.com/CM-Tech/typescript-snowy#readme",
-  "devDependencies": {
-    "@types/socket.io": "^1.4.29",
-    "@types/socket.io-client": "^1.4.29"
-  },
-  "dependencies": {
-    "@types/socket.io": "^1.4.29",
-    "@types/socket.io-client": "^1.4.29",
-    "ts-node": "^3.0.2",
-    "typescript": "^2.2.2"
-  }
+    "name": "typescript-snowy",
+    "version": "0.0.1",
+    "description": "A skiing .io game.",
+    "main": "src/server.js",
+    "engines": {
+        "node": "~5.6"
+    },
+    "scripts": {
+        "test": "echo \"no test here\"",
+        "start": "tsc && ts-node src/server.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/CM-Tech/typescript-snowy.git"
+    },
+    "keywords": [
+        "typescript",
+        "game"
+    ],
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/CM-Tech/typescript-snowy/issues"
+    },
+    "homepage": "https://github.com/CM-Tech/typescript-snowy#readme",
+    "devDependencies": {
+        "@types/socket.io": "^1.4.29",
+        "@types/socket.io-client": "^1.4.29"
+    },
+    "dependencies": {
+        "@types/socket.io": "^1.4.29",
+        "@types/socket.io-client": "^1.4.29",
+        "ts-node": "^3.0.2",
+        "typescript": "^2.2.2",
+        "typings": "^2.1.1"
+    }
 }
