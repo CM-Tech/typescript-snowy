@@ -1,0 +1,8 @@
+{
+  "globalDependencies": {
+    "socket.io": "registry:dt/socket.io#1.4.4+20170313110830"
+  },
+  "dependencies": {
+    "express": "registry:dt/express#4.0.0+20170118060322"
+  }
+}

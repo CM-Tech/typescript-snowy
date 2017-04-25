@@ -1,9 +1,12 @@
 "use strict";
 exports.__esModule = true;
+/// <reference path="../node_modules/@types/socket.io/index.d.ts" />
+/// <reference path="../node_modules/@types/express/index.d.ts" />
 require('ts-node/register');
 console.log("Starting Server");
+//import * as express from '@types/express';
+var SocketIO = require('@types/socket.io');
 var express = require("express");
-var socketIO = require("socket.io");
 var path = require("path");
 var PORT = process.env.PORT || 9000;
 var INDEX = path.join(__dirname, 'public/index.html');
@@ -11,14 +14,28 @@ var playerColors = [0xf9ff60, 0xff6060, 0x82ff60, 0x607eff, 0x60eaff, 0xff60ee, 
 var server = express()
     .use(express.static('public'))
     .listen(PORT, function () { return console.log("Listening on " + PORT); });
-var io = socketIO(server);
+var io = new SocketIO.server(server);
 var clients = [];
 var players = [];
+var Player = (function () {
+    function Player(playerId, username) {
+        this.playerId = playerId;
+        this.username = username;
+    }
+    return Player;
+}());
+var Client = (function () {
+    function Client(clientId, customId) {
+        this.clientId = clientId;
+        this.customId = customId;
+    }
+    return Client;
+}());
 io.sockets.on('connection', function (socket) {
     console.log("Connection " + socket.id);
-    var clientInfo = {};
-    clientInfo.customId = socket.id; // data.customId;
-    clientInfo.clientId = socket.id;
+    var clientInfo = new Client(socket.id, socket.id);
+    //clientInfo.customId = socket.id; // data.customId;
+    //clientInfo.clientId = socket.id;
     clients.push(clientInfo);
     console.log("Connection Stored " + socket.id);
     /*socket.on('storeClientInfo', function(data) {
@@ -40,11 +57,11 @@ io.sockets.on('connection', function (socket) {
         }
         console.log("Join " + socket.id);
         console.log(data);
-        var playerInfo = new Object();
-        playerInfo.username = data.username;
-        playerInfo.playerId = socket.id;
+        var playerInfo = new Player(socket.id, data.username);
+        //playerInfo.username = data.username;
+        //playerInfo.playerId = socket.id;
         playerInfo.color = playerColors[0];
-        playerInfo.points = 600;
+        playerInfo.points = 0;
         playerInfo.tot = 0;
         playerInfo.lastActive = new Date().getTime();
         players.push(playerInfo);
@@ -76,9 +93,9 @@ io.sockets.on('connection', function (socket) {
     });
     socket.on('disconnect', function (data) {
         for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
-            var c = players[i];
-            if (c) {
-                if (c.playerId == socket.id) {
+            var p = players[i];
+            if (p) {
+                if (p.playerId == socket.id) {
                     players.splice(i, 1);
                     i--;
                     //break;

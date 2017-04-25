@@ -2,7 +2,7 @@
   "name": "typescript-snowy",
   "version": "0.0.1",
   "description": "A skiing .io game.",
-  "main": "src/server.js",
+  "main": "src/server.ts",
   "engines": {
     "node": "~5.6"
   },
@@ -24,16 +24,8 @@
     "url": "https://github.com/CM-Tech/typescript-snowy/issues"
   },
   "homepage": "https://github.com/CM-Tech/typescript-snowy#readme",
-  "devDependencies": {
-    "@types/socket.io": "^1.4.29",
-    "@types/socket.io-client": "^1.4.29"
-  },
   "dependencies": {
-    "@types/express": "^4.0.35",
-    "@types/socket.io": "^1.4.29",
-    "@types/socket.io-client": "^1.4.29",
     "ts-node": "^3.0.2",
-    "typescript": "^2.2.2",
-    "typings": "^2.1.1"
+    "typescript": "^2.2.2"
   }
 }

@@ -1,23 +1,30 @@
+/// <reference path="../node_modules/@types/socket.io/index.d.ts" />
+/// <reference path="../node_modules/@types/express/index.d.ts" />
+declare function require(name: string);
 require('ts-node/register');
 console.log("Starting Server");
+//import * as express from '@types/express';
+var SocketIO = require('@types/socket.io');
 import express = require('express');
-import socketIO = require('socket.io');
 import path = require('path');
 const PORT = process.env.PORT || 9000;
 const INDEX = path.join(__dirname, 'public/index.html');
 var playerColors = [0xf9ff60, 0xff6060, 0x82ff60, 0x607eff, 0x60eaff, 0xff60ee, 0xe360ff, 0xffaf60, 0xa3ff60, 0xff609c, 0x60ff82, 0xcc60ff, 0xc65959, 0xf2d957, 0xc55252, 0x498e56, 0xc45151, 0xc35454, 0xc85757, 0xc85959, 0x5b74b6, 0x5c81bd, 0x5bb146, 0xd8c963, 0x404b7f];
-
 const server = express()
     .use(express.static('public'))
     .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-const io = socketIO(server);
+const io = new SocketIO.server(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
 class Player {
     playerId: string;
+    clientId: string;
     username: string;
-    lastActive:Number;
+    color: number;
+    lastActive:number;
+    points: number;
+    tot: number;
     constructor(playerId: string, username: string) {
         this.playerId = playerId;
         this.username = username;
@@ -97,9 +104,9 @@ io.sockets.on('connection', function (socket) {
     });
     socket.on('disconnect', function (data) {
         for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
-            var c = players[i];
-            if (c) {
-                if (c.playerId == socket.id) {
+            var p = players[i];
+            if (p) {
+                if (p.playerId == socket.id) {
                     players.splice(i, 1);
                     i--;
                     //break;
