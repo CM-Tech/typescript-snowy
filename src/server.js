@@ -1,20 +1,23 @@
 "use strict";
 exports.__esModule = true;
-/// <reference path="../node_modules/@types/socket.io/index.d.ts" />
-/// <reference path="../node_modules/@types/express/index.d.ts" />
+/// <reference path="../typings/globals/node/index.d.ts" />
+/// <reference path="../typings/globals/socket.io/index.d.ts" />
+/// <reference path="../typings/modules/express/index.d.ts" />
 require('ts-node/register');
+//require('node');
 console.log("Starting Server");
 //import * as express from '@types/express';
-var SocketIO = require('@types/socket.io');
+var SocketIO = require("socket.io");
 var express = require("express");
 var path = require("path");
 var PORT = process.env.PORT || 9000;
-var INDEX = path.join(__dirname, 'public/index.html');
+console.log(__dirname);
+var INDEX = path.join(__dirname, 'public\\index.html');
 var playerColors = [0xf9ff60, 0xff6060, 0x82ff60, 0x607eff, 0x60eaff, 0xff60ee, 0xe360ff, 0xffaf60, 0xa3ff60, 0xff609c, 0x60ff82, 0xcc60ff, 0xc65959, 0xf2d957, 0xc55252, 0x498e56, 0xc45151, 0xc35454, 0xc85757, 0xc85959, 0x5b74b6, 0x5c81bd, 0x5bb146, 0xd8c963, 0x404b7f];
 var server = express()
-    .use(express.static('public'))
+    .use(express.static(path.join(__dirname, 'public\\')))
     .listen(PORT, function () { return console.log("Listening on " + PORT); });
-var io = new SocketIO.server(server);
+var io = SocketIO(server);
 var clients = [];
 var players = [];
 var Player = (function () {
@@ -131,7 +134,7 @@ io.sockets.on('connection', function (socket) {
 setInterval(function () { return io.emit('players', players); }, 10);
 setInterval(tick, 10);
 function tick() {
-    console.log("running TICK");
+    //console.log("running TICK");
 }
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
