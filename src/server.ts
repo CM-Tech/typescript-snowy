@@ -12,14 +12,31 @@ const server = express()
     .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 const io = socketIO(server);
-var clients = [];
-var players=[];
+var clients: Array<Client> = [];
+var players: Array<Player> = [];
+class Player {
+    playerId: string;
+    username: string;
+    lastActive:Number;
+    constructor(playerId: string, username: string) {
+        this.playerId = playerId;
+        this.username = username;
+    }
+}
+class Client {
+    clientId: string;
+    customId: string;
+    constructor(clientId: string, customId: string) {
+        this.clientId = clientId;
+        this.customId = customId;
+    }
+}
 io.sockets.on('connection', function (socket) {
     console.log(`Connection ${socket.id}`);
 
-    var clientInfo:Object = {};
-    clientInfo.customId = socket.id; // data.customId;
-    clientInfo.clientId = socket.id;
+    var clientInfo: Client = new Client(socket.id, socket.id);
+    //clientInfo.customId = socket.id; // data.customId;
+    //clientInfo.clientId = socket.id;
     clients.push(clientInfo);
     console.log(`Connection Stored ${socket.id}`);
     /*socket.on('storeClientInfo', function(data) {
@@ -43,11 +60,11 @@ io.sockets.on('connection', function (socket) {
         }
         console.log(`Join ${socket.id}`);
         console.log(data);
-        var playerInfo = new Object();
-        playerInfo.username = data.username;
-        playerInfo.playerId = socket.id;
+        var playerInfo = new Player(socket.id,data.username);
+        //playerInfo.username = data.username;
+        //playerInfo.playerId = socket.id;
         playerInfo.color = playerColors[0];
-        playerInfo.points = 600;
+        playerInfo.points = 0;
         playerInfo.tot = 0;
         playerInfo.lastActive = new Date().getTime();
         players.push(playerInfo);
@@ -120,7 +137,7 @@ io.sockets.on('connection', function (socket) {
 }*/
 setInterval(() => io.emit('players', players), 10);
 setInterval(tick, 10);
-function tick(){
+function tick() {
     console.log("running TICK");
 }
 function playerForId(id) {
@@ -145,7 +162,7 @@ function removePlayer(id) {
                     }
                 }
             }
-          
+
         }
     }
 }
