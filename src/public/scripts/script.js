@@ -37,10 +37,12 @@ function initRenderer() {
 }
 var cube;
 var light;
+var plane;
 function initCube() {
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
     var boxMaterial = new THREE.MeshPhongMaterial({ color: 0xdddddd, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
     cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube.position.set(0, 1, 0);
     cube.castShadow = true;
     scene.add(cube);
     light = new THREE.DirectionalLight(0xffffff, 1);
@@ -54,8 +56,9 @@ function initCube() {
     scene.add(light);
     var planeGeometry = new THREE.PlaneGeometry(20, 20, 32, 32);
     var planeMaterial = new THREE.MeshPhongMaterial({ color: 0xFFeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
-    var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    plane.position.set(0, -4, 0);
+    plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.position.set(0, -1, 0);
+    plane.rotation.y = Math.PI / 2;
     plane.receiveShadow = true;
     scene.add(plane);
 }
