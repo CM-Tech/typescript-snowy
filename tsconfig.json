@@ -1,7 +1,9 @@
 {
+    "compileOnSave": true,
     "compilerOptions": {
         "typeRoots": ["./typings/globals", "./typings/modules"]
     },
+    "target": "es5",
     "include": [
         "src/**/*"
     ],
