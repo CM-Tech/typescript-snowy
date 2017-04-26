@@ -136,6 +136,7 @@ io.sockets.on('connection', function (socket) {
     });
 }*/
 setInterval(() => io.emit('players', players), 10);
+setInterval(() => io.emit('cube', {rotation:{x:0,y:0,z:new Date().getTime()/1000},time:new Date().getTime()}), 10);
 setInterval(tick, 10);
 function tick() {
     //console.log("running TICK");
