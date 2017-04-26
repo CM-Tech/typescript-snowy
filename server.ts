@@ -1,6 +1,7 @@
 /// <reference path="./typings/globals/node/index.d.ts" />
 /// <reference path="./typings/globals/socket.io/index.d.ts" />
 /// <reference path="./typings/modules/express/index.d.ts" />
+/// <reference path="src/public/shared/Player.ts"/>
 declare function require(name: string);
 require('ts-node/register');
 //require('node');
@@ -19,19 +20,6 @@ const server = express()
 const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
-class Player {
-    playerId: string;
-    clientId: string;
-    username: string;
-    color: number;
-    lastActive:number;
-    points: number;
-    tot: number;
-    constructor(playerId: string, username: string) {
-        this.playerId = playerId;
-        this.username = username;
-    }
-}
 class Client {
     clientId: string;
     customId: string;
@@ -68,7 +56,9 @@ io.sockets.on('connection', function (socket) {
             }
         }
         console.log(`Join ${socket.id}`);
+        data=data||{};
         console.log(data);
+        if(data.username){
         var playerInfo = new Player(socket.id,data.username);
         //playerInfo.username = data.username;
         //playerInfo.playerId = socket.id;
@@ -86,6 +76,7 @@ io.sockets.on('connection', function (socket) {
         socket.on('active', function (data) {
             playerInfo.lastActive = new Date().getTime();
         });
+        }
     });
     socket.on('leaveGame', function (data) {
         for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
