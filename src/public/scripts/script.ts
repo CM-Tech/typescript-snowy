@@ -46,6 +46,7 @@ function initCube() {
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
     var boxMaterial = new THREE.MeshPhongMaterial({ color: 0xdddddd, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
     cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube.position.set(0, 4, 0);
     cube.castShadow = true;
     
     scene.add(cube);
