@@ -106,8 +106,8 @@ mtlLoader.load(name+'.mtl', function (materials) {
     objLoader.load(name+'.obj', function (object:THREE.Mesh) {
         console.log(object);
         //object.geometry.computeBoundingBox();
-       // var center:THREE.Vector3=object.geometry.boundingBox.getCenter();
-//object.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,-center.y,0))
+        // var center:THREE.Vector3=object.geometry.boundingBox.getCenter();
+        //object.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,-center.y,0))
         models.push(new ModelEntry(label,object));
     });
 });
