@@ -2779,40 +2779,42 @@ declare namespace THREE {
         setValues(parameters: MeshPhongMaterialParameters): void;
     }
 
-    export interface MeshPhysicalMaterialParameters extends MeshStandardMaterialParameters {
-        reflectivity?: number;
-        clearCoat?: number;
-        clearCoatRoughness?: number;
-    }
 
-    export class MeshPhysicalMaterial extends MeshStandardMaterial {
-        constructor(parameters: MeshPhysicalMaterialParameters);
+export interface MeshPhysicalMaterialParameters extends MeshStandardMaterialParameters {
+reflectivity?: number;
+clearCoat?: number;
+clearCoatRoughness?: number;
+}
 
-        defines: any;
-        reflectivity: number;
-        clearCoat: number;
-        clearCoatRoughness: number;
-    }
+export class MeshPhysicalMaterial extends MeshStandardMaterial {
+constructor(parameters : MeshPhysicalMaterialParameters);
 
-    // MultiMaterial does not inherit the Material class in the original code. However, it should treat as Material class.
-    // See tests/canvas/canvas_materials.ts.
-    export class MultiMaterial extends Material {
-        constructor(materials?: Material[]);
+defines : any;
+reflectivity : number;
+clearCoat : number;
+clearCoatRoughness : number;
+}
 
-        materials: Material[];
+// MultiMaterial does not inherit the Material class in the original code.
+// However, it should treat as Material class. See
+// tests/canvas/canvas_materials.ts.
+export class MultiMaterial extends Material {
+constructor(materials?: Material[]);
 
-        toJSON(meta: any): any;
-    }
+materials : Material[];
 
-    /**
+toJSON(meta : any) : any;
+}
+
+/**
      * @deprecated Use MultiMaterial instead.
      */
-    export class MeshFaceMaterial extends MultiMaterial {}
+export class MeshFaceMaterial extends MultiMaterial {}
 
-    export interface PointsMaterialParameters extends MaterialParameters {
-        color?: number|string;
-        map?: Texture;
-        size?: number;
+export interface PointsMaterialParameters extends MaterialParameters {
+color?: number | string;
+map?: Texture;
+size?: number;
         sizeAttenuation?: boolean;
     }
 

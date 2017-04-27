@@ -1,4 +1,4 @@
-class Player {
+export class Player {
     playerId: string;
     clientId: string;
     username: string;

@@ -1,7 +1,7 @@
 /// <reference path="./typings/globals/node/index.d.ts" />
 /// <reference path="./typings/globals/socket.io/index.d.ts" />
 /// <reference path="./typings/modules/express/index.d.ts" />
-/// <reference path="src/public/shared/Player.ts"/>
+/// <reference path="./src/public/shared/Player.ts"/>
 declare function require(name: string);
 require('ts-node/register');
 //require('node');
@@ -136,7 +136,14 @@ io.sockets.on('connection', function (socket) {
     });
 }*/
 setInterval(() => io.emit('players', players), 10);
-setInterval(() => io.emit('cube', {rotation:{x:0,y:0,z:new Date().getTime()/1000},time:new Date().getTime()}), 10);
+setInterval(() => io.emit('cube', {
+    rotation: {
+        x: 0,
+        y: new Date().getTime() / 1000,
+        z:0
+    },
+    time: new Date().getTime()
+}), 10);
 setInterval(tick, 10);
 function tick() {
     //console.log("running TICK");
