@@ -7,8 +7,9 @@
 //--
 
 // <reference path="../shared/Player.ts"/> <reference path="./OutlineEffect.ts"/>
+// <reference path="../shared/TerrainGrid.ts"/>
 var socket = io();
-var tree=new THREE.Mesh();
+var tree=null;
 var models:Array<ModelEntry>=[];
 console.log("hello client");
 socket.on('spawn', function (data) {
@@ -28,7 +29,7 @@ function getModelByName(name : string) {
             return modelEntry.mesh.clone();
         }
     }
-    return new THREE.Mesh();
+    return null;
 }
 var scene : THREE.Scene,
     camera:THREE.PerspectiveCamera,
@@ -41,7 +42,6 @@ var mouseX = 0,
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
 
-var object
 function init() {
     scene = new THREE.Scene();
     initCamera();
@@ -63,17 +63,27 @@ function initSocket() {
             //cube.rotation.x = data.rotation.x;
             //cube.rotation.y = data.rotation.y;
             //cube.rotation.z = data.rotation.z;
+            if(tree==null){
             scene.remove(tree);
             tree = getModelByName("tree_1");
+if (tree != null) {
             tree.position.z = 1;
             tree.castShadow = true;
             tree.receiveShadow = true;
             scene.add(tree);
+}
+            }
+if (tree != null) {
 tree.rotation.x = data.rotation.x;
 tree.rotation.y = data.rotation.y;
 tree.rotation.z = data.rotation.z;
+}
             //console.log(cube, new Date().getTime() - data.time);
         });
+socket
+    .on('terrain', function (data) {
+       
+    });
 }
 function initCamera() {
     camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 10);
@@ -105,6 +115,16 @@ mtlLoader.load(name+'.mtl', function (materials) {
     objLoader.setPath('models/');
     objLoader.load(name+'.obj', function (object:THREE.Mesh) {
         console.log(object);
+object.updateMatrix();
+var bbox:THREE.Box3 = new THREE
+    .Box3()
+    .setFromObject(object);
+    console.log(bbox);
+var center:THREE.Vector3=bbox.getCenter(new THREE.Vector3(0,0,0));
+object.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,0,-center.z));
+object.updateMatrix();
+
+        //object.applyMatrix();
         //object.geometry.computeBoundingBox();
         // var center:THREE.Vector3=object.geometry.boundingBox.getCenter();
         //object.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,-center.y,0))
@@ -134,6 +154,12 @@ function initCube() {
     light.lookAt(scene.position);
     scene.add(light);
     var planeGeometry = new THREE.PlaneGeometry(20, 20, 32, 32);
+planeGeometry
+    .vertices
+    .forEach(element => {
+        element.setComponent(2,Math.random());
+    });
+    //planeGeometry.vertices[0].setComponent(1,10);
     var planeMaterial = new THREE.MeshPhongMaterial({color: 0xFF3333, specular: 0x000000, shininess: 0, shading: THREE.FlatShading})
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane
@@ -141,7 +167,9 @@ function initCube() {
         .set(0, -1, 0);
     plane.rotation.x = -Math.PI / 2;
     plane.receiveShadow = true;
+    plane.castShadow=true;
     scene.add(plane);
+    
 }
 function render() {
     renderer.render(scene, camera);

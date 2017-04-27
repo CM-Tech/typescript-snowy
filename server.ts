@@ -2,6 +2,7 @@
 /// <reference path="./typings/globals/socket.io/index.d.ts" />
 /// <reference path="./typings/modules/express/index.d.ts" />
 /// <reference path="./src/public/shared/Player.ts"/>
+/// <reference path="./src/public/shared/TerrainGrid.ts"/>
 declare function require(name: string);
 require('ts-node/register');
 //require('node');
@@ -20,6 +21,8 @@ const server = express()
 const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
+var terrainDetail:number=6;
+//var terrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
 class Client {
     clientId: string;
     customId: string;
