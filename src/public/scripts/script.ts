@@ -1,7 +1,11 @@
-// <reference path="../../../typings/globals/socket.io-client/index.d.ts" /> /
-//---
+// <reference path="../../../typings/globals/socket.io-client/index.d.ts" />
+
+//--
+
 // <reference path="../../../typings/globals/three/index.d.ts" />
-//---
+
+//--
+
 // <reference path="../shared/Player.ts"/> <reference path="./OutlineEffect.ts"/>
 var socket = io();
 console.log("hello client");
@@ -15,6 +19,10 @@ var scene,
 var effect;
 var WIDTH : number = window.innerWidth;
 var HEIGHT : number = window.innerHeight;
+var mouseX = 0,
+    mouseY = 0;
+var windowHalfX = window.innerWidth / 2;
+var windowHalfY = window.innerHeight / 2;
 function init() {
     scene = new THREE.Scene();
     initCamera();
@@ -24,6 +32,8 @@ function init() {
     document
         .body
         .appendChild(renderer.domElement);
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    window.addEventListener('resize', onWindowResize, false);
 
 }
 
@@ -47,7 +57,7 @@ function initCamera() {
 function initRenderer() {
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(WIDTH, HEIGHT);
-    renderer.setClearColor(new THREE.Color(180,180,180))
+    renderer.setClearColor(new THREE.Color(180, 180, 180))
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     //effect = new THREE.OutlineEffect(renderer);
@@ -55,8 +65,9 @@ function initRenderer() {
 var cube;
 var light;
 var plane;
-function loadModel(name:string){
-    THREE.OBJLoader
+function loadModel(name : string) {
+    //TODO: Write This
+    //THREE.OBJLoader.
 }
 function initCube() {
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -97,3 +108,15 @@ function render() {
 
 init();
 render();
+
+function onWindowResize() {
+    windowHalfX = window.innerWidth / 2;
+    windowHalfY = window.innerHeight / 2;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+function onDocumentMouseMove(event) {
+    mouseX = (event.clientX - windowHalfX) / 2;
+    mouseY = (event.clientY - windowHalfY) / 2;
+}
