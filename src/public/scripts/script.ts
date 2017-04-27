@@ -66,8 +66,18 @@ var cube;
 var light;
 var plane;
 function loadModel(name : string) {
-    //TODO: Write This
-    //THREE.OBJLoader.
+    var mtlLoader = new THREE.MTLLoader();
+mtlLoader.setPath('obj/male02/');
+mtlLoader.load('male02_dds.mtl', function (materials) {
+    materials.preload();
+    var objLoader = new THREE.OBJLoader();
+    objLoader.setMaterials(materials);
+    objLoader.setPath('obj/male02/');
+    objLoader.load('male02.obj', function (object) {
+        object.position.y = -95;
+        scene.add(object);
+    });
+});
 }
 function initCube() {
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1);

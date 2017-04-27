@@ -1,10 +1,9 @@
 // <reference path="../../../typings/globals/three/index.d.ts" />
 declare namespace THREE {
-export class OBJLoader extends THREE.EventDispatcher {
+export class MTLLoader extends THREE.EventDispatcher {
     constructor();
     load(url : string, callback?: (response : any) => any, onProgress?: (response : any) => any, onError?: (response : any) => any) : void;
     parse(data : any) : any; // Not sure if the return value can be typed. Seems to be a group but I can't find a definition for that in three.d.ts?
-    setMaterials(materials:any):void;
     setPath(path:string) : void;
 }
 }
