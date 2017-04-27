@@ -8,13 +8,30 @@
 
 // <reference path="../shared/Player.ts"/> <reference path="./OutlineEffect.ts"/>
 var socket = io();
+var tree=new THREE.Mesh();
+var models:Array<ModelEntry>=[];
 console.log("hello client");
 socket.on('spawn', function (data) {
     console.log(data);
 });
-
-var scene,
-    camera,
+class ModelEntry {
+    name : string;
+    mesh : THREE.Mesh;
+    constructor(modelName : string, mesh : THREE.Mesh) {
+        this.name = modelName;
+        this.mesh = mesh;
+    }
+}
+function getModelByName(name : string) {
+    for (var modelEntry of models) {
+        if (modelEntry.name == name) {
+            return modelEntry.mesh.clone();
+        }
+    }
+    return new THREE.Mesh();
+}
+var scene : THREE.Scene,
+    camera:THREE.PerspectiveCamera,
     renderer : THREE.WebGLRenderer;
 var effect;
 var WIDTH : number = window.innerWidth;
@@ -23,6 +40,8 @@ var mouseX = 0,
     mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
+
+var object
 function init() {
     scene = new THREE.Scene();
     initCamera();
@@ -34,15 +53,25 @@ function init() {
         .appendChild(renderer.domElement);
     document.addEventListener('mousemove', onDocumentMouseMove, false);
     window.addEventListener('resize', onWindowResize, false);
-
+loadModel("naturePack_084","tree_1");
 }
+
 
 function initSocket() {
     socket
         .on('cube', function (data) {
-            cube.rotation.x = data.rotation.x;
-            cube.rotation.y = data.rotation.y;
-            cube.rotation.z = data.rotation.z;
+            //cube.rotation.x = data.rotation.x;
+            //cube.rotation.y = data.rotation.y;
+            //cube.rotation.z = data.rotation.z;
+            scene.remove(tree);
+            tree = getModelByName("tree_1");
+            tree.position.z = 1;
+            tree.castShadow = true;
+            tree.receiveShadow = true;
+            scene.add(tree);
+tree.rotation.x = data.rotation.x;
+tree.rotation.y = data.rotation.y;
+tree.rotation.z = data.rotation.z;
             //console.log(cube, new Date().getTime() - data.time);
         });
 }
@@ -65,17 +94,22 @@ function initRenderer() {
 var cube;
 var light;
 var plane;
-function loadModel(name : string) {
+//label is what to call it after import
+function loadModel(name : string,label:string) {
     var mtlLoader = new THREE.MTLLoader();
-mtlLoader.setPath('obj/male02/');
-mtlLoader.load('male02_dds.mtl', function (materials) {
+mtlLoader.setPath('models/');
+mtlLoader.load(name+'.mtl', function (materials) {
     materials.preload();
     var objLoader = new THREE.OBJLoader();
     objLoader.setMaterials(materials);
-    objLoader.setPath('obj/male02/');
-    objLoader.load('male02.obj', function (object) {
-        object.position.y = -95;
-        scene.add(object);
+    objLoader.setPath('models/');
+    objLoader.load(name+'.obj', function (object:THREE.Mesh) {
+        object.geometry.computeBoundingBox();
+        var center:THREE.Vector3=object.geometry.boundingBox.getCenter();
+object
+    .geometry
+    .applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,-center.y,0))
+        models.push(new ModelEntry(label,object));
     });
 });
 }
@@ -88,7 +122,7 @@ function initCube() {
         .set(0, 1, 0);
     cube.castShadow = true;
     cube.receiveShadow = true;
-    scene.add(cube);
+    //scene.add(cube);
     light = new THREE.DirectionalLight(0xffffff, 1);
     light
         .position
