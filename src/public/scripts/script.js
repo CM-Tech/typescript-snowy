@@ -93,6 +93,12 @@ function loadModel(name, label) {
         objLoader.setMaterials(materials);
         objLoader.setPath('models/');
         objLoader.load(name + '.obj', function (object) {
+            console.log(object);
+            //object.geometry.computeBoundingBox();
+            var center = object.geometry.boundingBox.getCenter();
+            object
+                .geometry
+                .applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, -center.y, 0));
             models.push(new ModelEntry(label, object));
         });
     });
