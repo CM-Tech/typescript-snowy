@@ -3,7 +3,7 @@
 // <reference path="../../../typings/globals/three/index.d.ts" />
 //--
 // <reference path="../shared/Player.ts"/> <reference path="./OutlineEffect.ts"/>
-// <reference path="../shared/TerrainGrid.ts"/>
+// <reference path="../shared/Terrain.ts"/>
 var socket = io();
 var tree = null;
 var models = [];
@@ -11,6 +11,9 @@ console.log("hello client");
 socket.on('spawn', function (data) {
     console.log(data);
 });
+var terrainDetail = 6;
+var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
+var planeGeometry = new THREE.PlaneGeometry(100, 100, worldTerrain.rows, worldTerrain.columns);
 var ModelEntry = (function () {
     function ModelEntry(modelName, mesh) {
         this.name = modelName;
@@ -57,6 +60,13 @@ function initSocket() {
             scene.remove(tree);
             tree = getModelByName("tree_1");
             if (tree != null) {
+                //tree.children
+                tree
+                    .children
+                    .forEach(function (child) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                });
                 tree.position.z = 1;
                 tree.castShadow = true;
                 tree.receiveShadow = true;
@@ -72,6 +82,15 @@ function initSocket() {
     });
     socket
         .on('terrain', function (data) {
+        worldTerrain.setGridFromData(data.grid, data.heights);
+        for (var i = 0; i < planeGeometry.vertices.length; i++) {
+            var y = Math.floor(i / (worldTerrain.columns + 1)) % worldTerrain.rows;
+            var yn = Math.floor(i / (worldTerrain.columns + 1));
+            var x = Math.floor(i % (worldTerrain.columns + 1)) % worldTerrain.columns;
+            planeGeometry
+                .vertices[i]
+                .setComponent(2, worldTerrain.heights[y][x] - yn / 2 + worldTerrain.rows / 2);
+        }
     });
 }
 function initCamera() {
@@ -87,7 +106,7 @@ function initRenderer() {
     renderer.setClearColor(new THREE.Color(180, 180, 180));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
-    //effect = new THREE.OutlineEffect(renderer);
+    effect = new THREE.OutlineEffect(renderer);
 }
 var cube;
 var light;
@@ -121,7 +140,7 @@ function loadModel(name, label) {
 }
 function initCube() {
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-    var boxMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+    var boxMaterial = new THREE.MeshToonMaterial({ color: 0xffffff, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
     cube = new THREE.Mesh(boxGeometry, boxMaterial);
     cube
         .position
@@ -140,14 +159,8 @@ function initCube() {
     light.shadow.camera.far = 100;
     light.lookAt(scene.position);
     scene.add(light);
-    var planeGeometry = new THREE.PlaneGeometry(20, 20, 32, 32);
-    planeGeometry
-        .vertices
-        .forEach(function (element) {
-        element.setComponent(2, Math.random());
-    });
     //planeGeometry.vertices[0].setComponent(1,10);
-    var planeMaterial = new THREE.MeshPhongMaterial({ color: 0xFF3333, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+    var planeMaterial = new THREE.MeshToonMaterial({ color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane
         .position
@@ -158,8 +171,8 @@ function initCube() {
     scene.add(plane);
 }
 function render() {
-    renderer.render(scene, camera);
-    //effect.render(scene, camera);
+    //renderer.render(scene, camera);
+    effect.render(scene, camera);
     requestAnimationFrame(render);
 }
 init();

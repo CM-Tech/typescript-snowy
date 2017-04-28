@@ -1,5 +1,9 @@
-var TerrainGrid = (function () {
-    function TerrainGrid(rows, columns) {
+class TerrainGrid {
+    rows : number;
+    columns : number;
+    grid : Array < Array < Array < GridSquare >>>;
+    heights : Array < Array < number >>;
+    constructor(rows : number, columns : number) {
         this.rows = rows;
         this.columns = columns;
         this.grid = [];
@@ -17,9 +21,8 @@ var TerrainGrid = (function () {
             }
         }
     }
-    TerrainGrid.prototype.generateHeights = function () {
-    };
-    TerrainGrid.prototype.setGridFromData = function (data, heights) {
+    generateHeights() : void {}
+    setGridFromData(data : Array < Array < Array < GridSquare >>>, heights : Array < Array < number >>) : void {
         this.rows = data.length;
         this.columns = data[0].length;
         this.grid = [];
@@ -36,11 +39,19 @@ var TerrainGrid = (function () {
                 this.heights[i][j] = heights[i][j];
             }
         }
-    };
-    return TerrainGrid;
-}());
-var GridSquare = (function () {
-    function GridSquare(height, dx, dz, rotation, modelLabel, gx, gz) {
+    }
+
+}
+class GridSquare {
+    height : number;
+    dx : number;
+    dz : number;
+    rotation : number;
+    modelLabel : string;
+    gx : number;
+    gz : number;
+
+    constructor(height : number, dx : number, dz : number, rotation : number, modelLabel : string, gx : number, gz : number) {
         this.height = height;
         this.dx = dx;
         this.dz = dz;
@@ -49,5 +60,4 @@ var GridSquare = (function () {
         this.gx = gx;
         this.gz = gz;
     }
-    return GridSquare;
-}());
+}

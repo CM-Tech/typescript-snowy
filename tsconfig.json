@@ -1,11 +1,12 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "typeRoots": ["./typings/globals", "./typings/modules"]
+        "typeRoots": ["./typings/globals", "./typings/modules", "./src/public/shared"]
     },
-    "target": "es5",
+    "target": "es6",
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "server.ts"
     ],
     "exclude": [
         "node_modules",
