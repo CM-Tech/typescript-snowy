@@ -78,7 +78,7 @@ var maxFractal : number = Math.floor(Math.log(this.columns) / Math.log(2));
 for (var i = 0; i < this.rows; i++) {
 this.heights[i] = [];
     for (var j = 0; j < this.columns; j++) {
-this.heights[i][j]=0;
+this.heights[i][j]=-30;
 for (var m = 0; m < maxFractal; m++) {
 this.heights[i][j] += this.getMapValue((j - this.columns / 2) / Math.pow(2, maxFractal - m), (i - this.rows / 2) / Math.pow(2, maxFractal - m), perlinMap) / Math.pow(2, maxFractal - m);
 }

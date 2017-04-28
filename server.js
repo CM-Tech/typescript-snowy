@@ -51,7 +51,7 @@ var TerrainGrid = (function () {
         var minY = Math.floor(y % this.rows + this.rows) % this.rows;
         var maxY = (Math.floor(y % this.rows + this.rows) + 1) % this.rows;
         var modY = y - Math.floor(y);
-        console.log(minX, maxX, this.columns, minY, maxY, this.rows);
+        //console.log(minX,maxX,this.columns,minY,maxY,this.rows);
         return map[minY][minX] * (1 - modX) * (1 - modY) + map[maxY][minX] * (modX) * (1 - modY) + map[maxY][maxX] * (modX) * (modY) + map[minY][maxX] * (1 - modX) * (modY);
     };
     TerrainGrid.prototype.generateHeights = function () {
@@ -69,7 +69,7 @@ var TerrainGrid = (function () {
             for (var j = 0; j < this.columns; j++) {
                 this.heights[i][j] = 0;
                 for (var m = 0; m < maxFractal; m++) {
-                    this.heights[i][j] += this.getMapValue((j - this.columns / 2) / Math.pow(2, maxFractal - i), (i - this.rows / 2) / Math.pow(2, maxFractal - i), perlinMap) / Math.pow(2, maxFractal - i);
+                    this.heights[i][j] += this.getMapValue((j - this.columns / 2) / Math.pow(2, maxFractal - m), (i - this.rows / 2) / Math.pow(2, maxFractal - m), perlinMap) / Math.pow(2, maxFractal - m);
                 }
             }
         }
