@@ -15,9 +15,9 @@ console.log("hello client");
 socket.on('spawn', function (data) {
     console.log(data);
 });
-var terrainDetail : number = 6;
+var terrainDetail : number = 7;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
-var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(100, 100, worldTerrain.rows, worldTerrain.columns);
+var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(512/4, 512/4, worldTerrain.rows, worldTerrain.columns);
 class ModelEntry {
     name : string;
     mesh : THREE.Mesh;
@@ -101,10 +101,10 @@ var yn : number = Math.floor(i / (worldTerrain.columns + 1));
 var x : number = Math.floor(i % (worldTerrain.columns + 1)) % worldTerrain.columns;
     planeGeometry
         .vertices[i]
-.setComponent(2, worldTerrain.heights[y][x] - yn / 2 + worldTerrain.rows/2);
+.setComponent(2, worldTerrain.heights[y][x] );
 }
 scene.remove(plane);
-var planeMaterial = new THREE.MeshToonMaterial({color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading})
+var planeMaterial = new THREE.MeshPhongMaterial({color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading})
 plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane
     .position
@@ -116,10 +116,10 @@ scene.add(plane);
     });
 }
 function initCamera() {
-    camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 10);
+    camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 40);
     camera
         .position
-        .set(0, 5, 5);
+        .set(0, 10, 10);
     camera.lookAt(scene.position);
 }
 
@@ -184,7 +184,7 @@ function initCube() {
     light.lookAt(scene.position);
     scene.add(light);
     //planeGeometry.vertices[0].setComponent(1,10);
-    var planeMaterial = new THREE.MeshToonMaterial({color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading})
+    var planeMaterial = new THREE.MeshToonMaterial({color: 0xff8800, specular: 0x000000, shininess: 0, shading: THREE.FlatShading})
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane
         .position
@@ -192,7 +192,7 @@ function initCube() {
     plane.rotation.x = -Math.PI / 2;
     plane.receiveShadow = true;
     plane.castShadow=true;
-    scene.add(plane);
+    //scene.add(plane);
     
 }
 function render() {

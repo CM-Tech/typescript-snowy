@@ -55,16 +55,26 @@ class TerrainGrid {
             }
         }
     }
-getMapValue(x : number, y : number, map : Array < Array < number >>) {
-var minX : number = Math.floor(x % this.columns + this.columns) % this.columns;
-var maxX : number = (Math.floor(x % this.columns + this.columns) + 1) % this.columns;
+getMapValue(x : number, y : number, map : Array < Array < number >>):number {
+var minX : number = Math.floor(x % map[0].length + map[0].length) % map[0].length;
+var maxX : number = (Math.floor(x % map[0].length + map[0].length) + 1) % map[0].length;
 var modX=x-Math.floor(x);
-var minY : number = Math.floor(y % this.rows + this.rows) % this.rows;
-var maxY : number = (Math.floor(y % this.rows + this.rows) + 1) % this.rows;
+var minY : number = Math.floor(y % map.length + map.length) % map.length;
+var maxY : number = (Math.floor(y % map.length + map.length) + 1) % map.length;
 var modY=y-Math.floor(y);
 //console.log(minX,maxX,this.columns,minY,maxY,this.rows);
 return map[minY][minX] * (1 - modX) * (1 - modY) + map[maxY][minX] * (modX) * (1 - modY) + map[maxY][maxX] * (modX) * (modY) + map[minY][maxX] * (1-modX) * (modY);
     }
+iterateGrid(grid:Array < Array < number >>,randScale:number) : Array < Array < number >> {
+var newGrid : Array < Array < number >>= [];
+for (var i = 0; i < grid.length * 2; i++) {
+    newGrid[i] = [];
+    for (var j = 0; j < grid[0].length*2; j++) {
+        newGrid[i][j] =this.getMapValue(j/2,i/2,grid)+Math.random()*randScale;
+    }
+}
+return newGrid;
+}
     generateHeights() : void {
         var perlinMap:Array<Array<number>>=[];
 for (var i = 0; i < this.rows; i++) {
@@ -78,10 +88,41 @@ var maxFractal : number = Math.floor(Math.log(this.columns) / Math.log(2));
 for (var i = 0; i < this.rows; i++) {
 this.heights[i] = [];
     for (var j = 0; j < this.columns; j++) {
-this.heights[i][j]=-30;
-for (var m = 0; m < maxFractal; m++) {
-this.heights[i][j] += this.getMapValue((j - this.columns / 2) / Math.pow(2, maxFractal - m), (i - this.rows / 2) / Math.pow(2, maxFractal - m), perlinMap) / Math.pow(2, maxFractal - m);
+this.heights[i][j]=0.0;
+    }
 }
+var newGrid : Array < Array < number >>= [[0]];
+while(newGrid.length<this.rows || newGrid[0].length<this.columns){
+newGrid = this.iterateGrid(newGrid, 1/newGrid.length/2);
+}
+/*for (var m = 1; m < maxFractal; m++) {
+for (var i = 0; i < this.rows / Math.pow(2, m); i++) {
+    perlinMap[i] = [];
+for (var j = 0; j < this.columns / Math.pow(2, m); j++) {
+        perlinMap[i][j] = Math.random();
+    }
+}
+for (var i = 0; i < this.rows; i++) {
+    for (var j = 0; j < this.columns; j++) {
+        
+this.heights[i][j] += this.getMapValue((j)  / Math.pow(2, m)+0.5, (i ) / Math.pow(2, m)+0.5, perlinMap) / Math.pow(2, maxFractal-m);
+        
+    }
+}
+}*/
+for (var i = 0; i < this.rows; i++) {
+    for (var j = 0; j < this.columns; j++) {
+
+        this.heights[i][j] =newGrid[i][j];
+
+    }
+}
+var midVal : number = this.heights[Math.floor(this.rows / 2)][Math.floor(this.columns / 2)];
+for (var i = 0; i < this.rows; i++) {
+    
+    for (var j = 0; j < this.columns; j++) {
+        
+        this.heights[i][j] = (this.heights[i][j]-midVal)*30;
     }
 }
     }
@@ -144,7 +185,7 @@ const server = express()
 const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
-var terrainDetail:number=6;
+var terrainDetail:number=7;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
 worldTerrain.generateHeights();
 class Client {
@@ -170,6 +211,7 @@ io.sockets.on('connection', function (socket) {
         clientInfo.clientId = socket.id;
         clients.push(clientInfo);
     });*/
+socket.emit('terrain', worldTerrain);
 
     socket.on('join', function (data) {
         if (playerForId(socket.id)) {

@@ -18,14 +18,24 @@ var TerrainGrid = (function () {
         }
     }
     TerrainGrid.prototype.getMapValue = function (x, y, map) {
-        var minX = Math.floor(x % this.columns + this.columns) % this.columns;
-        var maxX = (Math.floor(x % this.columns + this.columns) + 1) % this.columns;
+        var minX = Math.floor(x % map[0].length + map[0].length) % map[0].length;
+        var maxX = (Math.floor(x % map[0].length + map[0].length) + 1) % map[0].length;
         var modX = x - Math.floor(x);
-        var minY = Math.floor(y % this.rows + this.rows) % this.rows;
-        var maxY = (Math.floor(y % this.rows + this.rows) + 1) % this.rows;
+        var minY = Math.floor(y % map.length + map.length) % map.length;
+        var maxY = (Math.floor(y % map.length + map.length) + 1) % map.length;
         var modY = y - Math.floor(y);
         //console.log(minX,maxX,this.columns,minY,maxY,this.rows);
         return map[minY][minX] * (1 - modX) * (1 - modY) + map[maxY][minX] * (modX) * (1 - modY) + map[maxY][maxX] * (modX) * (modY) + map[minY][maxX] * (1 - modX) * (modY);
+    };
+    TerrainGrid.prototype.iterateGrid = function (grid, randScale) {
+        var newGrid = [];
+        for (var i = 0; i < grid.length * 2; i++) {
+            newGrid[i] = [];
+            for (var j = 0; j < grid[0].length * 2; j++) {
+                newGrid[i][j] = this.getMapValue(j / 2, i / 2, grid) + Math.random() * randScale;
+            }
+        }
+        return newGrid;
     };
     TerrainGrid.prototype.generateHeights = function () {
         var perlinMap = [];
@@ -40,10 +50,39 @@ var TerrainGrid = (function () {
         for (var i = 0; i < this.rows; i++) {
             this.heights[i] = [];
             for (var j = 0; j < this.columns; j++) {
-                this.heights[i][j] = 0;
-                for (var m = 0; m < maxFractal; m++) {
-                    this.heights[i][j] += this.getMapValue((j - this.columns / 2) / Math.pow(2, maxFractal - m), (i - this.rows / 2) / Math.pow(2, maxFractal - m), perlinMap) / Math.pow(2, maxFractal - m);
-                }
+                this.heights[i][j] = 0.0;
+            }
+        }
+        var newGrid = [
+            [0]
+        ];
+        while (newGrid.length < this.rows || newGrid[0].length < this.columns) {
+            newGrid = this.iterateGrid(newGrid, 1 / newGrid.length / 2);
+        }
+        /*for (var m = 1; m < maxFractal; m++) {
+for (var i = 0; i < this.rows / Math.pow(2, m); i++) {
+    perlinMap[i] = [];
+for (var j = 0; j < this.columns / Math.pow(2, m); j++) {
+        perlinMap[i][j] = Math.random();
+    }
+}
+for (var i = 0; i < this.rows; i++) {
+    for (var j = 0; j < this.columns; j++) {
+
+this.heights[i][j] += this.getMapValue((j)  / Math.pow(2, m)+0.5, (i ) / Math.pow(2, m)+0.5, perlinMap) / Math.pow(2, maxFractal-m);
+
+    }
+}
+}*/
+        for (var i = 0; i < this.rows; i++) {
+            for (var j = 0; j < this.columns; j++) {
+                this.heights[i][j] = newGrid[i][j];
+            }
+        }
+        var midVal = this.heights[Math.floor(this.rows / 2)][Math.floor(this.columns / 2)];
+        for (var i = 0; i < this.rows; i++) {
+            for (var j = 0; j < this.columns; j++) {
+                this.heights[i][j] = (this.heights[i][j] - midVal) * 30;
             }
         }
     };
