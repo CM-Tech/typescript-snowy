@@ -91,6 +91,16 @@ function initSocket() {
                 .vertices[i]
                 .setComponent(2, worldTerrain.heights[y][x] - yn / 2 + worldTerrain.rows / 2);
         }
+        scene.remove(plane);
+        var planeMaterial = new THREE.MeshToonMaterial({ color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+        plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane
+            .position
+            .set(0, -1, 0);
+        plane.rotation.x = -Math.PI / 2;
+        plane.receiveShadow = true;
+        plane.castShadow = true;
+        scene.add(plane);
     });
 }
 function initCamera() {

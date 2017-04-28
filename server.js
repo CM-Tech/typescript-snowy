@@ -44,7 +44,36 @@ var TerrainGrid = (function () {
             }
         }
     }
-    TerrainGrid.prototype.generateHeights = function () { };
+    TerrainGrid.prototype.getMapValue = function (x, y, map) {
+        var minX = Math.floor(x % this.columns + this.columns) % this.columns;
+        var maxX = (Math.floor(x % this.columns + this.columns) + 1) % this.columns;
+        var modX = x - Math.floor(x);
+        var minY = Math.floor(y % this.rows + this.rows) % this.rows;
+        var maxY = (Math.floor(y % this.rows + this.rows) + 1) % this.rows;
+        var modY = y - Math.floor(y);
+        console.log(minX, maxX, this.columns, minY, maxY, this.rows);
+        return map[minY][minX] * (1 - modX) * (1 - modY) + map[maxY][minX] * (modX) * (1 - modY) + map[maxY][maxX] * (modX) * (modY) + map[minY][maxX] * (1 - modX) * (modY);
+    };
+    TerrainGrid.prototype.generateHeights = function () {
+        var perlinMap = [];
+        for (var i = 0; i < this.rows; i++) {
+            perlinMap[i] = [];
+            for (var j = 0; j < this.columns; j++) {
+                perlinMap[i][j] = Math.random();
+            }
+        }
+        this.heights = [];
+        var maxFractal = Math.floor(Math.log(this.columns) / Math.log(2));
+        for (var i = 0; i < this.rows; i++) {
+            this.heights[i] = [];
+            for (var j = 0; j < this.columns; j++) {
+                this.heights[i][j] = 0;
+                for (var m = 0; m < maxFractal; m++) {
+                    this.heights[i][j] += this.getMapValue((j - this.columns / 2) / Math.pow(2, maxFractal - i), (i - this.rows / 2) / Math.pow(2, maxFractal - i), perlinMap) / Math.pow(2, maxFractal - i);
+                }
+            }
+        }
+    };
     TerrainGrid.prototype.setGridFromData = function (data, heights) {
         this.rows = data.length;
         this.columns = data[0].length;
@@ -97,6 +126,7 @@ var clients = [];
 var players = [];
 var terrainDetail = 6;
 var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
+worldTerrain.generateHeights();
 var Client = (function () {
     function Client(clientId, customId) {
         this.clientId = clientId;
@@ -148,9 +178,10 @@ io.sockets.on('connection', function (socket) {
             socket.on('active', function (data) {
                 playerInfo.lastActive = new Date().getTime();
             });
+            socket.emit('terrain', worldTerrain);
         }
     });
-    socket.on('leaveGame', function (data) {
+    socket.on('leave', function (data) {
         for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
             var c = players[i];
             if (c) {
@@ -195,7 +226,7 @@ io.sockets.on('connection', function (socket) {
         }
     });
 });
-setInterval(function () { return io.emit('terrain', worldTerrain); }, 100);
+setInterval(function () { return io.emit('terrain', worldTerrain); }, 10000);
 //setInterval(() => io.emit('hello', clients.length.toString()), 1000);
 /*function updateGridChange(r, c) {
     io.emit('gridHex', {
