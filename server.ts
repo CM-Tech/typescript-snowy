@@ -84,14 +84,15 @@ return -this.tilt * ((z / this.gridSize + 0.5) * this.rows - this.rows / 2);
 }
 getSurfaceNormalArWorldCoord(x:number,z:number):THREE.Vector3{
 var dummy = new THREE.Vector3(0, 0, 0);
-var A:THREE.Vector3=new THREE.Vector3(x,0.0,z+0.05);
-A.setY( this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
-var B : THREE.Vector3 = new THREE.Vector3(x + 0.05, 0.0, z - 0.05);
-B.setY( this.getNoTiltHeightAtWorldCoord(B.x, B.z) + this.getTiltTermAtWorldCoord(B.x, B.z));
-var C : THREE.Vector3 = new THREE.Vector3(x-0.05, 0.0, z - 0.05);
-C.setY( this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
+var A:THREE.Vector3=new THREE.Vector3(x,0.0,z+0.5);
+A.y=( this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
+var B : THREE.Vector3 = new THREE.Vector3(x - 0.5, 0.0, z - 0.5);
+B.y=( this.getNoTiltHeightAtWorldCoord(B.x, B.z) + this.getTiltTermAtWorldCoord(B.x, B.z));
+var C : THREE.Vector3 = new THREE.Vector3(x+0.5, 0.0, z - 0.5);
+C.y=( this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
 var Dir : THREE.Vector3 = dummy.crossVectors(dummy
-    .subVectors(B, A),dummy.subVectors(C, A));
+    .subVectors(B, A).clone(),dummy.subVectors(C, A).clone());
+    console.log("DIR",Dir)
 return Dir.normalize();
 }
 iterateGrid(grid:Array < Array < number >>,randScale:number) : Array < Array < number >> {
@@ -219,7 +220,7 @@ const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
 var terrainDetail:number=8;
-var maxVel : number = 0.5;
+var maxVel : number = 10;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.075,512/4);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
@@ -376,6 +377,7 @@ newVelocity.setY( newVelocity.y - delta / 1000);
 }
 if (wHeight > newPosition.y) {
 var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
+console.log(terrainNormal);
 var deltaPos : THREE.Vector3 = dummy.subVectors(newPosition,new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
 var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(2 * deltaPos.dot(terrainNormal)));
 newPosition = dummy
