@@ -93,7 +93,7 @@ this.heights[i][j]=0.0;
 }
 var newGrid : Array < Array < number >>= [[0]];
 while(newGrid.length<this.rows || newGrid[0].length<this.columns){
-newGrid = this.iterateGrid(newGrid, 1/newGrid.length/2);
+newGrid = this.iterateGrid(newGrid, 1/newGrid.length/3);
 }
 /*for (var m = 1; m < maxFractal; m++) {
 for (var i = 0; i < this.rows / Math.pow(2, m); i++) {
@@ -122,10 +122,27 @@ for (var i = 0; i < this.rows; i++) {
     
     for (var j = 0; j < this.columns; j++) {
         
-        this.heights[i][j] = (this.heights[i][j]-midVal)*30;
+        this.heights[i][j] = (this.heights[i][j]-midVal)*70;
     }
 }
     }
+generateTrees() : void {
+this.grid=[];
+    for (var i = 0; i < this.rows; i++) {
+this.grid[i] = [];
+        for (var j = 0; j < this.columns; j++) {
+this.grid[i][j] = [];
+if (Math.max(Math.abs(this.getMapValue(j - 1, i, this.heights) - this.getMapValue(j + 1, i, this.heights)), Math.abs(this.getMapValue(j , i-1, this.heights) - this.getMapValue(j , i+1, this.heights)))<10) {
+
+if(Math.random()<0.01){
+var dx = Math.random();
+var dy = Math.random();
+this.grid[i][j] = [new GridSquare(this.getMapValue(j + dx, i + dy, this.heights), 0, 0, Math.random() * Math.PI * 2, "tree_1", j + dx, i + dy)];
+}
+            }
+        }
+    }
+}
     setGridFromData(data : Array < Array < Array < GridSquare >>>, heights : Array < Array < number >>) : void {
         this.rows = data.length;
         this.columns = data[0].length;
@@ -185,9 +202,10 @@ const server = express()
 const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
-var terrainDetail:number=7;
+var terrainDetail:number=8;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
 worldTerrain.generateHeights();
+worldTerrain.generateTrees();
 class Client {
     clientId: string;
     customId: string;

@@ -82,7 +82,7 @@ var TerrainGrid = (function () {
         }
         var newGrid = [[0]];
         while (newGrid.length < this.rows || newGrid[0].length < this.columns) {
-            newGrid = this.iterateGrid(newGrid, 1 / newGrid.length / 2);
+            newGrid = this.iterateGrid(newGrid, 1 / newGrid.length / 3);
         }
         /*for (var m = 1; m < maxFractal; m++) {
         for (var i = 0; i < this.rows / Math.pow(2, m); i++) {
@@ -107,7 +107,23 @@ var TerrainGrid = (function () {
         var midVal = this.heights[Math.floor(this.rows / 2)][Math.floor(this.columns / 2)];
         for (var i = 0; i < this.rows; i++) {
             for (var j = 0; j < this.columns; j++) {
-                this.heights[i][j] = (this.heights[i][j] - midVal) * 30;
+                this.heights[i][j] = (this.heights[i][j] - midVal) * 70;
+            }
+        }
+    };
+    TerrainGrid.prototype.generateTrees = function () {
+        this.grid = [];
+        for (var i = 0; i < this.rows; i++) {
+            this.grid[i] = [];
+            for (var j = 0; j < this.columns; j++) {
+                this.grid[i][j] = [];
+                if (Math.max(Math.abs(this.getMapValue(j - 1, i, this.heights) - this.getMapValue(j + 1, i, this.heights)), Math.abs(this.getMapValue(j, i - 1, this.heights) - this.getMapValue(j, i + 1, this.heights))) < 10) {
+                    if (Math.random() < 0.01) {
+                        var dx = Math.random();
+                        var dy = Math.random();
+                        this.grid[i][j] = [new GridSquare(this.getMapValue(j + dx, i + dy, this.heights), 0, 0, Math.random() * Math.PI * 2, "tree_1", j + dx, i + dy)];
+                    }
+                }
             }
         }
     };
@@ -161,9 +177,10 @@ var server = express()
 var io = SocketIO(server);
 var clients = [];
 var players = [];
-var terrainDetail = 7;
+var terrainDetail = 8;
 var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
 worldTerrain.generateHeights();
+worldTerrain.generateTrees();
 var Client = (function () {
     function Client(clientId, customId) {
         this.clientId = clientId;

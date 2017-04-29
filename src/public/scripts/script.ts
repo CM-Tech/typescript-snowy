@@ -15,9 +15,11 @@ console.log("hello client");
 socket.on('spawn', function (data) {
     console.log(data);
 });
-var terrainDetail : number = 7;
+var terrainDetail : number = 8;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
-var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(512/4, 512/4, worldTerrain.rows, worldTerrain.columns);
+var worldSize : number = 512 / 4;
+var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
+var terrainStuff:Array<THREE.Object3D>=[];
 class ModelEntry {
     name : string;
     mesh : THREE.Mesh;
@@ -82,7 +84,7 @@ child.receiveShadow = true;
             tree.castShadow = true;
             
             tree.receiveShadow = true;
-            scene.add(tree);
+            //scene.add(tree);
 }
             }
 if (tree != null) {
@@ -104,11 +106,40 @@ var x : number = Math.floor(i % (worldTerrain.columns + 1)) % worldTerrain.colum
 .setComponent(2, worldTerrain.heights[y][x] );
 }
 scene.remove(plane);
-var planeMaterial = new THREE.MeshPhongMaterial({color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.FlatShading})
+var tLen = terrainStuff.length+0;
+for(var i=0;i<tLen;i++){
+scene.remove(terrainStuff.pop());
+}
+for(var x=0;x<worldTerrain.grid[0].length;x++){
+    for (var y = 0; y < worldTerrain.grid.length; y++) {
+var terrainSquareItems : Array < GridSquare >= worldTerrain.grid[y][x];
+for (var item  of terrainSquareItems){
+var object:THREE.Object3D= getModelByName(item.modelLabel);
+if(object!==null){
+object
+    .children
+    .forEach(child => {
+        child.castShadow = true;
+
+        child.receiveShadow = true;
+    });
+object.castShadow = true;
+
+object.receiveShadow = true;
+    terrainStuff.push(object);
+object
+    .position
+.set((item.gx - worldTerrain.columns / 2) * worldSize / worldTerrain.columns, item.height, (item.gz - worldTerrain.rows/2) * worldSize / worldTerrain.rows);
+    scene.add(object);
+}
+}
+    }
+}
+var planeMaterial = new THREE.MeshToonMaterial({color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.SmoothShading})
 plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane
     .position
-    .set(0, -1, 0);
+    .set(0, 0, 0);
 plane.rotation.x = -Math.PI / 2;
 plane.receiveShadow = true;
 plane.castShadow = true;
@@ -121,6 +152,7 @@ function initCamera() {
         .position
         .set(0, 10, 10);
     camera.lookAt(scene.position);
+    scene.fog=new THREE.Fog(0xeeeeee,50,75)
 }
 
 function initRenderer() {
