@@ -122,7 +122,7 @@ function initSocket() {
                 }
             }
         }
-        var planeMaterial = new THREE.MeshToonMaterial({ color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.SmoothShading });
+        var planeMaterial = new THREE.MeshPhongMaterial({ color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.SmoothShading });
         plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane
             .position
@@ -144,7 +144,7 @@ function initCamera() {
 function initRenderer() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(WIDTH, HEIGHT);
-    renderer.setClearColor(new THREE.Color(180, 180, 180));
+    renderer.setClearColor(new THREE.Color(100, 128, 208));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     effect = new THREE.OutlineEffect(renderer);
@@ -189,7 +189,7 @@ function initCube() {
     cube.castShadow = true;
     cube.receiveShadow = true;
     //scene.add(cube);
-    light = new THREE.DirectionalLight(0xffffff, 1);
+    light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
         .set(2, 12, 2);
@@ -201,7 +201,7 @@ function initCube() {
     light.lookAt(scene.position);
     scene.add(light);
     //planeGeometry.vertices[0].setComponent(1,10);
-    var planeMaterial = new THREE.MeshToonMaterial({ color: 0xff8800, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+    var planeMaterial = new THREE.MeshPhongMaterial({ color: 0xff8800, specular: 0x000000, shininess: 0, shading: THREE.SmoothShading });
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane
         .position
@@ -228,4 +228,8 @@ function onWindowResize() {
 function onDocumentMouseMove(event) {
     mouseX = (event.clientX - windowHalfX) / 2;
     mouseY = (event.clientY - windowHalfY) / 2;
+    camera.rotation.y = -mouseX / windowHalfX * Math.PI * 1;
+    camera.rotation.z = 0; //mouseY / windowHalfY * Math.PI * 2;
+    camera.rotation.x = 0;
+    camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
 }
