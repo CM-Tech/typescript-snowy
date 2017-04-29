@@ -6,17 +6,44 @@
 
 //--
 
-// <reference path="../shared/Player.ts"/> <reference path="./OutlineEffect.ts"/>
+// <reference path="../shared/Player.ts"/>
+// <reference path="./OutlineEffect.ts"/>
 // <reference path="../shared/Terrain.ts"/>
+var inGame:boolean=false;
 var socket = io();
+var players:Array<Player>=[];
+var myPlayer:Player=null;
+var lastPlayerTime:number=0;
+function playerForId(id) {
+    for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
+        var c = players[i];
+
+        if (c.playerId == id) {
+            return c;
+        }
+    }
+    return null;
+}
 var tree:THREE.Object3D=null;
 var models:Array<ModelEntry>=[];
 console.log("hello client");
 socket.on('spawn', function (data) {
     console.log(data);
 });
+socket
+    .on('players', function (data) {
+       players=data;
+lastPlayerTime=new Date().getTime();
+if (playerForId(socket.id)!=null) {
+myPlayer = playerForId(socket.id);
+camera.position.x=myPlayer.position.x;
+camera.position.y = myPlayer.position.y+5;
+camera.position.z = myPlayer.position.z;
+inGame=true;
+       }
+    });
 var terrainDetail : number = 8;
-var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
+var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.5,512/4);
 var worldSize : number = 512 / 4;
 var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
 var terrainStuff:Array<THREE.Object3D>=[];
@@ -96,7 +123,11 @@ tree.rotation.z = data.rotation.z;
         });
 socket
     .on('terrain', function (data) {
-       worldTerrain.setGridFromData(data.grid,data.heights);
+        worldTerrain.gridSize=data.gridSize;
+        worldSize=worldTerrain.gridSize;
+       worldTerrain.setGridFromData(data.grid,data.heights,data.tilt);
+scene.remove(plane);
+planeGeometry  = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
 for (var i = 0; i < planeGeometry.vertices.length; i++) {
 var y : number = Math.floor(i / (worldTerrain.columns + 1)) % worldTerrain.rows;
 var yn : number = Math.floor(i / (worldTerrain.columns + 1));
@@ -105,7 +136,6 @@ var x : number = Math.floor(i % (worldTerrain.columns + 1)) % worldTerrain.colum
         .vertices[i]
 .setComponent(2, worldTerrain.heights[y][x] );
 }
-scene.remove(plane);
 var tLen = terrainStuff.length+0;
 for(var i=0;i<tLen;i++){
 scene.remove(terrainStuff.pop());
@@ -135,7 +165,7 @@ object
 }
     }
 }
-var planeMaterial = new THREE.MeshPhongMaterial({color: 0xeeeeee, specular: 0x000000, shininess: 0, shading: THREE.SmoothShading})
+var planeMaterial = new THREE.MeshPhongMaterial({color: 0xfefefe, specular: 0xffffff, shininess: 0.1, shading: THREE.SmoothShading})
 plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane
     .position
@@ -146,13 +176,14 @@ plane.castShadow = true;
 scene.add(plane);
     });
 }
+socket.emit("join", {username: "BOB"});
 function initCamera() {
     camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 40);
     camera
         .position
         .set(0, 10, 10);
     camera.lookAt(scene.position);
-    scene.fog=new THREE.Fog(0xeeeeee,50,75)
+    //scene.fog=new THREE.Fog(0xeeeeee,50,75)
 }
 
 function initRenderer() {
@@ -161,7 +192,7 @@ function initRenderer() {
     renderer.setClearColor(new THREE.Color(100,128,208))
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
-    effect = new THREE.OutlineEffect(renderer);
+    //effect = new THREE.OutlineEffect(renderer);
 }
 var cube;
 var light;
@@ -207,7 +238,7 @@ function initCube() {
     light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
-        .set(2, 12, 2);
+        .set(10, 102, 30);
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024; // default 512
     light.shadow.mapSize.height = 1024; // default 512
@@ -216,7 +247,7 @@ function initCube() {
     light.lookAt(scene.position);
     scene.add(light);
     //planeGeometry.vertices[0].setComponent(1,10);
-    var planeMaterial = new THREE.MeshPhongMaterial({color: 0xff8800, specular: 0x000000, shininess: 0, shading: THREE.SmoothShading})
+var planeMaterial = new THREE.MeshPhongMaterial({color: 0xfefefe, specular: 0xffffff, shininess: 0.1, shading: THREE.SmoothShading})
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane
         .position
@@ -228,8 +259,9 @@ function initCube() {
     
 }
 function render() {
-    //renderer.render(scene, camera);
-    effect.render(scene, camera);
+    renderer.render(scene, camera);
+    scene.autoUpdate=true;
+    //effect.render(scene, camera);
     requestAnimationFrame(render);
 }
 
@@ -246,7 +278,7 @@ function onWindowResize() {
 function onDocumentMouseMove(event) {
     mouseX = (event.clientX - windowHalfX) / 2;
     mouseY = (event.clientY - windowHalfY) / 2;
-camera.rotation.y = -mouseX / windowHalfX * Math.PI*1;
+camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
 camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
 camera.rotation.x = 0;
 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);

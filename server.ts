@@ -1,9 +1,11 @@
 /// <reference path="./typings/globals/node/index.d.ts" />
 /// <reference path="./typings/globals/socket.io/index.d.ts" />
+/// <reference path="./typings/globals/three/index.d.ts" />
 /// <reference path="./typings/modules/express/index.d.ts" />
 /// <reference path="./src/public/shared/Player.ts"/>
 /// <reference path="./src/public/shared/Terrain.ts"/>
 declare function require(name: string);
+import THREE = require('three');
 //import "./src/public/shared/Player";
 class Player {
     playerId : string;
@@ -15,12 +17,14 @@ class Player {
     tot : number;
     position : THREE.Vector3;
     rotation : THREE.Vector3;
-    constructor(playerId : string, username : string) {
-        this.playerId = playerId;
-        this.username = username;
-        this.position = new THREE.Vector3(0, 0, 0);
-        this.rotation = new THREE.Vector3(0, 0, 0);
-    }
+velocity : THREE.Vector3;
+constructor(playerId : string, username : string) {
+    this.playerId = playerId;
+    this.username = username;
+    this.position = new THREE.Vector3(0, 0, 0);
+    this.rotation = new THREE.Vector3(0, 0, 0);
+    this.velocity = new THREE.Vector3(0, 0, 0);
+}
     setRotation(x : number, y : number, z : number) : void {
         this
             .rotation
@@ -37,7 +41,11 @@ class TerrainGrid {
     columns : number;
     grid : Array < Array < Array < GridSquare >>>;
     heights : Array < Array < number >>;
-    constructor(rows : number, columns : number) {
+    gridSize:number;
+tilt : number;
+constructor(rows : number, columns : number, tilt : number,gridSize:number) {
+    this.gridSize=gridSize;
+    this.tilt = tilt;
         this.rows = rows;
         this.columns = columns;
         this.grid = [];
@@ -65,6 +73,27 @@ var modY=y-Math.floor(y);
 //console.log(minX,maxX,this.columns,minY,maxY,this.rows);
 return map[minY][minX] * (1 - modX) * (1 - modY) + map[maxY][minX] * (modX) * (1 - modY) + map[maxY][maxX] * (modX) * (modY) + map[minY][maxX] * (1-modX) * (modY);
     }
+getHeightAtWorldCoord(x : number, z : number) : number {
+    return this.getMapValue((x / this.gridSize + 0.5) * this.columns, (z / this.gridSize + 0.5) * this.rows, this.heights);
+}
+getNoTiltHeightAtWorldCoord(x : number, z : number) : number {
+return this.getMapValue((x / this.gridSize + 0.5) * this.columns, (z / this.gridSize + 0.5) * this.rows, this.heights) - this.getTiltTermAtWorldCoord(x,z);
+}
+getTiltTermAtWorldCoord(x : number, z : number) : number {
+return -this.tilt * ((z / this.gridSize + 0.5) * this.rows - this.rows / 2);
+}
+getSurfaceNormalArWorldCoord(x:number,z:number):THREE.Vector3{
+var dummy = new THREE.Vector3(0, 0, 0);
+var A:THREE.Vector3=new THREE.Vector3(x,0.0,z+0.05);
+A.setY( this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
+var B : THREE.Vector3 = new THREE.Vector3(x + 0.05, 0.0, z - 0.05);
+B.setY( this.getNoTiltHeightAtWorldCoord(B.x, B.z) + this.getTiltTermAtWorldCoord(B.x, B.z));
+var C : THREE.Vector3 = new THREE.Vector3(x-0.05, 0.0, z - 0.05);
+C.setY( this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
+var Dir : THREE.Vector3 = dummy.crossVectors(dummy
+    .subVectors(B, A),dummy.subVectors(C, A));
+return Dir.normalize();
+}
 iterateGrid(grid:Array < Array < number >>,randScale:number) : Array < Array < number >> {
 var newGrid : Array < Array < number >>= [];
 for (var i = 0; i < grid.length * 2; i++) {
@@ -95,21 +124,7 @@ var newGrid : Array < Array < number >>= [[0]];
 while(newGrid.length<this.rows || newGrid[0].length<this.columns){
 newGrid = this.iterateGrid(newGrid, 1/newGrid.length/3);
 }
-/*for (var m = 1; m < maxFractal; m++) {
-for (var i = 0; i < this.rows / Math.pow(2, m); i++) {
-    perlinMap[i] = [];
-for (var j = 0; j < this.columns / Math.pow(2, m); j++) {
-        perlinMap[i][j] = Math.random();
-    }
-}
-for (var i = 0; i < this.rows; i++) {
-    for (var j = 0; j < this.columns; j++) {
-        
-this.heights[i][j] += this.getMapValue((j)  / Math.pow(2, m)+0.5, (i ) / Math.pow(2, m)+0.5, perlinMap) / Math.pow(2, maxFractal-m);
-        
-    }
-}
-}*/
+
 for (var i = 0; i < this.rows; i++) {
     for (var j = 0; j < this.columns; j++) {
 
@@ -122,7 +137,7 @@ for (var i = 0; i < this.rows; i++) {
     
     for (var j = 0; j < this.columns; j++) {
         
-        this.heights[i][j] = (this.heights[i][j]-midVal)*70;
+this.heights[i][j] = (this.heights[i][j] - midVal) * 70 - this.tilt * (i-this.rows / 2);
     }
 }
     }
@@ -143,7 +158,8 @@ this.grid[i][j] = [new GridSquare(this.getMapValue(j + dx, i + dy, this.heights)
         }
     }
 }
-    setGridFromData(data : Array < Array < Array < GridSquare >>>, heights : Array < Array < number >>) : void {
+setGridFromData(data : Array < Array < Array < GridSquare >>>, heights : Array < Array < number >>, tilt : number) : void {
+    this.tilt = tilt;
         this.rows = data.length;
         this.columns = data[0].length;
         this.grid = [];
@@ -203,7 +219,8 @@ const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
 var terrainDetail:number=8;
-var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail));
+var maxVel : number = 0.5;
+var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.075,512/4);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
 class Client {
@@ -323,19 +340,66 @@ setInterval(() => io.emit('terrain', worldTerrain), 10000);
         c: c
     });
 }*/
-setInterval(() => io.emit('players', players), 10);
-setInterval(() => io.emit('cube', {
+//setInterval(() => io.emit('players', players), 10);
+/*setInterval(() => io.emit('cube', {
     rotation: {
         x: 0,
         y: new Date().getTime() / 1000,
         z:0
     },
     time: new Date().getTime()
-}), 10);
-setInterval(tick, 10);
+}), 10);*/
+var lastTick=new Date().getTime();
+setInterval(tick, 200);
 function tick() {
-    //console.log("running TICK");
+var delta : number = Math.min(300, new Date().getTime()-lastTick);
+lastTick = new Date().getTime();
+var dummy = new THREE.Vector3(0, 0, 0);
+for(var i=0;i<players.length;i++){
+    var p:Player=players[i];
+var newPosition : THREE.Vector3 = p
+    .position
+    .add(p.velocity.clone().multiplyScalar(delta / 1000));
+var newVelocity:THREE.Vector3=p.velocity.clone();
+newPosition.setY( newPosition.y - worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z));
+newPosition.setX( ((newPosition.x + worldTerrain.gridSize / 2) % worldTerrain.gridSize + worldTerrain.gridSize) % worldTerrain.gridSize - worldTerrain.gridSize / 2);
+newPosition.setZ( ((newPosition.z + worldTerrain.gridSize / 2) % worldTerrain.gridSize + worldTerrain.gridSize) % worldTerrain.gridSize - worldTerrain.gridSize / 2);
+newPosition.setY( newPosition.y + worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z));
+var vel=newVelocity.length();
+if(vel>maxVel){
+newVelocity = newVelocity.normalize().multiplyScalar(maxVel);
 }
+var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
+if(wHeight<= newPosition.y){
+    console.log("falling");
+newVelocity.setY( newVelocity.y - delta / 1000);
+}
+if (wHeight > newPosition.y) {
+var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
+var deltaPos : THREE.Vector3 = dummy.subVectors(newPosition,new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
+var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(2 * deltaPos.dot(terrainNormal)));
+newPosition = dummy
+    .addVectors(dummy.subVectors(newPosition, deltaPos),deltaReflectPos);
+    console.log("before reflect",newVelocity);
+var reflectedVel : THREE.Vector3 = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(2 * newVelocity.dot(terrainNormal)));
+newVelocity=reflectedVel;//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
+}
+vel = newVelocity.length();
+if (vel > maxVel) {
+newVelocity = newVelocity
+    .normalize()
+    .clone()
+        .multiplyScalar(maxVel);
+}
+players[i]=p;
+console.log(newVelocity,newPosition);
+players[i].velocity=newVelocity;
+players[i].setPosition(newPosition.x,newPosition.y,newPosition.z);
+} 
+io.emit('players', players);
+    console.log("running TICK",players);
+}
+
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
         var c = players[i];
