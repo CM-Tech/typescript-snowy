@@ -113,7 +113,7 @@ var TerrainGrid = (function () {
         }
         for (var i = 0; i < this.rows; i++) {
             for (var j = 0; j < this.columns; j++) {
-                this.heights[i][j] = 0; //newGrid[i][j];
+                this.heights[i][j] = newGrid[i][j] / 2;
             }
         }
         var midVal = this.heights[Math.floor(this.rows / 2)][Math.floor(this.columns / 2)];

@@ -129,7 +129,7 @@ newGrid = this.iterateGrid(newGrid, 1/newGrid.length/3);
 for (var i = 0; i < this.rows; i++) {
     for (var j = 0; j < this.columns; j++) {
 
-        this.heights[i][j] =0;//newGrid[i][j];
+        this.heights[i][j] =newGrid[i][j]/2;
 
     }
 }
