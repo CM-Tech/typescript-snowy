@@ -354,7 +354,7 @@ socket.emit('terrain', worldTerrain);
     });
 });
 
-setInterval(() => io.emit('terrain', worldTerrain), 10000);
+//setInterval(() => io.emit('terrain', worldTerrain), 10000);
 //setInterval(() => io.emit('hello', clients.length.toString()), 1000);
 /*function updateGridChange(r, c) {
     io.emit('gridHex', {
@@ -393,13 +393,13 @@ if(vel>maxVel){
 newVelocity = newVelocity.normalize().multiplyScalar(maxVel);
 }
 var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
-if(wHeight<= newPosition.y){
+//if(wHeight<= newPosition.y){
     //console.log("falling");
 newVelocity.setY( newVelocity.y - delta / 100);
-}
+//}
 if (wHeight > newPosition.y) {
 var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
-console.log(terrainNormal);
+//console.log(terrainNormal);
 var deltaPos : THREE.Vector3 = dummy.subVectors(newPosition,new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
 var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(1.1 * dummy.subVectors(new THREE.Vector3(0,0,0),deltaPos).dot(terrainNormal)));
 /*newPosition = dummy
@@ -418,18 +418,18 @@ new THREE.Vector3(0, 0, -worldTerrain.getTiltTermAtWorldCoord(0, 2)));
 var tempY = addVelComp.y+0;
 addVelComp.y=0;
 addVelComp = playerDirVec.clone().multiplyScalar(addVelComp.dot(playerDirVec));
-//addVelComp.y = tempY;
+addVelComp.y = tempY*0.1;
 var reflectedVel : THREE.Vector3 = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(1.0 * newVelocity.dot(terrainNormal)));
-reflectedVel = dummy.addVectors(reflectedVel, addVelComp.clone().multiplyScalar(0.2));
+reflectedVel = dummy.addVectors(reflectedVel, addVelComp.clone().multiplyScalar(0.9));
 newVelocity=reflectedVel;//dummy.addVectors(reflectedVel,new THREE.Vector3(0,0,-worldTerrain.getTiltTermAtWorldCoord(0,2)));//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
 var draggedVelComp : THREE.Vector3 = newVelocity.clone();
 var tempY2 = draggedVelComp.y + 0;
 draggedVelComp.y = 0;
-draggedVelComp = newVelocity
+draggedVelComp = playerDirVec
     .clone()
-.multiplyScalar(draggedVelComp.dot(newVelocity));
+.multiplyScalar(draggedVelComp.dot(playerDirVec));
 draggedVelComp.y = tempY2;
-newVelocity=newVelocity.lerp(draggedVelComp, 0.9);
+newVelocity=newVelocity.lerp(draggedVelComp, 0.3);
 }
 vel = newVelocity.length();
 if (vel > maxVel) {
