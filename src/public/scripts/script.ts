@@ -58,7 +58,7 @@ class ModelEntry {
 function getModelByName(name : string) {
     for (var modelEntry of models) {
         if (modelEntry.name == name) {
-            return modelEntry.mesh.clone();
+            return modelEntry.mesh.clone(true);
         }
     }
     return null;
@@ -177,7 +177,7 @@ scene.add(object);
 }
     }
 }
-var planeMaterial = new THREE.MeshPhongMaterial({color: 0xfefefe, specular: 0xffffff, shininess: 0.1, shading: THREE.SmoothShading})
+var planeMaterial = new THREE.MeshToonMaterial({color: 0xfefefe, specular: 0x000000, shininess: 0.0, shading: THREE.FlatShading})
 plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane
     .position
@@ -204,7 +204,7 @@ function initRenderer() {
     renderer.setClearColor(new THREE.Color(100,128,208))
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
-    //effect = new THREE.OutlineEffect(renderer);
+    effect = new THREE.OutlineEffect(renderer);
 }
 var cube;
 var light;
@@ -250,7 +250,7 @@ function initCube() {
     light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
-        .set(10, 102, 30);
+        .set(10, 10, -30);
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024; // default 512
     light.shadow.mapSize.height = 1024; // default 512
@@ -258,8 +258,10 @@ function initCube() {
     light.shadow.camera.far = 100;
     light.lookAt(scene.position);
     scene.add(light);
+var ambient = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambient);
     //planeGeometry.vertices[0].setComponent(1,10);
-var planeMaterial = new THREE.MeshPhongMaterial({color: 0xfefefe, specular: 0xffffff, shininess: 0.1, shading: THREE.SmoothShading})
+var planeMaterial = new THREE.MeshToonMaterial({color: 0xfefefe, specular: 0x000000, shininess: 0.0, shading: THREE.FlatShading})
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane
         .position
@@ -271,9 +273,9 @@ var planeMaterial = new THREE.MeshPhongMaterial({color: 0xfefefe, specular: 0xff
     
 }
 function render() {
-    renderer.render(scene, camera);
+    //renderer.render(scene, camera);
     scene.autoUpdate=true;
-    //effect.render(scene, camera);
+    effect.render(scene, camera);
     requestAnimationFrame(render);
 }
 

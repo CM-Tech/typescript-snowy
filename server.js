@@ -59,14 +59,28 @@ var TerrainGrid = (function () {
         //console.log(minX,maxX,this.columns,minY,maxY,this.rows);
         return map[minY][minX] * (1 - modX) * (1 - modY) + map[maxY][minX] * (modX) * (1 - modY) + map[maxY][maxX] * (modX) * (modY) + map[minY][maxX] * (1 - modX) * (modY);
     };
+    TerrainGrid.prototype.getHeightMapValueCorrected = function (x, y) {
+        var map = this.heights;
+        var minX = Math.floor(x % map[0].length + map[0].length) % map[0].length;
+        var maxX = (Math.floor(x % map[0].length + map[0].length) + 1) % map[0].length;
+        var modX = x - Math.floor(x);
+        var minY = Math.floor(y % map.length + map.length) % map.length;
+        var maxY = (Math.floor(y % map.length + map.length) + 1) % map.length;
+        var modY = y - Math.floor(y);
+        //console.log(minX,maxX,this.columns,minY,maxY,this.rows);
+        return (map[minY][minX] + (minY - this.columns / 2) * this.tilt) * (1 - modX) * (1 - modY) + (map[maxY][minX] + (maxY - this.columns / 2) * this.tilt) * (modX) * (1 - modY) + (map[maxY][maxX] + (maxY - this.columns / 2) * this.tilt) * (modX) * (modY) + (map[minY][maxX] + (minY - this.columns / 2) * this.tilt) * (1 - modX) * (modY) - (y - this.columns / 2) * this.tilt;
+    };
     TerrainGrid.prototype.getHeightAtWorldCoord = function (x, z) {
-        return this.getMapValue((x / this.gridSize + 0.5) * this.columns, (z / this.gridSize + 0.5) * this.rows, this.heights);
+        return this.getHeightMapValueCorrected((x / this.gridSize + 0.5) * this.columns, (z / this.gridSize + 0.5) * this.rows);
     };
     TerrainGrid.prototype.getNoTiltHeightAtWorldCoord = function (x, z) {
-        return this.getMapValue((x / this.gridSize + 0.5) * this.columns, (z / this.gridSize + 0.5) * this.rows, this.heights) - this.getTiltTermAtWorldCoord(x, z);
+        return this.getHeightMapValueCorrected((x / this.gridSize + 0.5) * this.columns, (z / this.gridSize + 0.5) * this.rows) - this.getTiltTermAtWorldCoord(x, z);
     };
     TerrainGrid.prototype.getTiltTermAtWorldCoord = function (x, z) {
         return -this.tilt * ((z / this.gridSize + 0.5) * this.rows - this.rows / 2);
+    };
+    TerrainGrid.prototype.getTiltTermAtGridCoord = function (x, y) {
+        return -this.tilt * (y - this.rows / 2);
     };
     TerrainGrid.prototype.getSurfaceNormalArWorldCoord = function (x, z) {
         var dummy = new THREE.Vector3(0, 0, 0);
@@ -109,7 +123,7 @@ var TerrainGrid = (function () {
         }
         var newGrid = [[0]];
         while (newGrid.length < this.rows || newGrid[0].length < this.columns) {
-            newGrid = this.iterateGrid(newGrid, 1 / newGrid.length / 3);
+            newGrid = this.iterateGrid(newGrid, 1 / newGrid.length / 2);
         }
         for (var i = 0; i < this.rows; i++) {
             for (var j = 0; j < this.columns; j++) {
@@ -119,9 +133,12 @@ var TerrainGrid = (function () {
         var midVal = this.heights[Math.floor(this.rows / 2)][Math.floor(this.columns / 2)];
         for (var i = 0; i < this.rows; i++) {
             for (var j = 0; j < this.columns; j++) {
-                this.heights[i][j] = (this.heights[i][j] - midVal) * 70 - this.tilt * (i - this.rows / 2);
+                this.heights[i][j] = (this.heights[i][j] - midVal) * 40 - this.tilt * (i - this.rows / 2);
             }
         }
+    };
+    TerrainGrid.prototype.getHeightTiltExpanded = function (x, y) {
+        return this.getHeightMapValueCorrected(x, y) + this.tilt * (((y % this.rows + this.rows)) % this.rows - this.rows / 2) - this.tilt * (y - this.rows / 2);
     };
     TerrainGrid.prototype.generateTrees = function () {
         this.grid = [];
@@ -129,11 +146,11 @@ var TerrainGrid = (function () {
             this.grid[i] = [];
             for (var j = 0; j < this.columns; j++) {
                 this.grid[i][j] = [];
-                if (Math.max(Math.abs(this.getMapValue(j - 1, i, this.heights) - this.getMapValue(j + 1, i, this.heights)), Math.abs(this.getMapValue(j, i - 1, this.heights) - this.getMapValue(j, i + 1, this.heights))) < 10) {
+                if (Math.max(Math.abs(this.getHeightTiltExpanded(j - 1, i) - this.getHeightTiltExpanded(j + 1, i)), Math.abs(this.getHeightTiltExpanded(j, i - 1) - this.getHeightTiltExpanded(j, i + 1))) < 10) {
                     if (Math.random() < 0.01) {
                         var dx = Math.random();
                         var dy = Math.random();
-                        this.grid[i][j] = [new GridSquare(this.getMapValue(j + dx, i + dy, this.heights), 0, 0, Math.random() * Math.PI * 2, "tree_1", j + dx, i + dy)];
+                        this.grid[i][j] = [new GridSquare(this.getHeightTiltExpanded(j + dx, i + dy), 0, 0, Math.random() * Math.PI * 2, "tree_1", j + dx, i + dy)];
                     }
                 }
             }
@@ -342,13 +359,13 @@ function tick() {
             var terrainNormal = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
             console.log(terrainNormal);
             var deltaPos = dummy.subVectors(newPosition, new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
-            var deltaReflectPos = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(2 * dummy.subVectors(new THREE.Vector3(0, 0, 0), deltaPos).dot(terrainNormal)));
+            var deltaReflectPos = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(1.1 * dummy.subVectors(new THREE.Vector3(0, 0, 0), deltaPos).dot(terrainNormal)));
             /*newPosition = dummy
                 .addVectors(dummy.subVectors(newPosition, deltaPos),deltaReflectPos.clone());*/
             newPosition.y = wHeight;
             //console.log("before reflect",newVelocity);
-            var reflectedVel = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(2 * newVelocity.dot(terrainNormal)));
-            newVelocity = dummy.addVectors(reflectedVel, new THREE.Vector3(0, 0, worldTerrain.getTiltTermAtWorldCoord(0, 2))); //.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
+            var reflectedVel = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(1.1 * newVelocity.dot(terrainNormal)));
+            newVelocity = dummy.addVectors(reflectedVel, new THREE.Vector3(0, 0, -worldTerrain.getTiltTermAtWorldCoord(0, 2))); //.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
         }
         vel = newVelocity.length();
         if (vel > maxVel) {
