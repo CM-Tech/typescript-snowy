@@ -147,6 +147,18 @@ function initSocket() {
                             .position
                             .set((item.gx - worldTerrain.columns / 2) * worldSize / worldTerrain.columns, item.height, (item.gz - worldTerrain.rows / 2) * worldSize / worldTerrain.rows);
                         scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+                        scene.add(object);
                     }
                 }
             }
