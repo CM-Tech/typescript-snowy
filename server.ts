@@ -86,9 +86,9 @@ getSurfaceNormalArWorldCoord(x:number,z:number):THREE.Vector3{
 var dummy = new THREE.Vector3(0, 0, 0);
 var A:THREE.Vector3=new THREE.Vector3(x,0.0,z+0.5);
 A.y=( this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
-var B : THREE.Vector3 = new THREE.Vector3(x - 0.5, 0.0, z - 0.5);
+var B : THREE.Vector3 = new THREE.Vector3(x + 0.5, 0.0, z - 0.5);
 B.y=( this.getNoTiltHeightAtWorldCoord(B.x, B.z) + this.getTiltTermAtWorldCoord(B.x, B.z));
-var C : THREE.Vector3 = new THREE.Vector3(x+0.5, 0.0, z - 0.5);
+var C : THREE.Vector3 = new THREE.Vector3(x-0.5, 0.0, z - 0.5);
 C.y=( this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
 var Dir : THREE.Vector3 = dummy.crossVectors(dummy
     .subVectors(B, A).clone(),dummy.subVectors(C, A).clone());
@@ -129,7 +129,7 @@ newGrid = this.iterateGrid(newGrid, 1/newGrid.length/3);
 for (var i = 0; i < this.rows; i++) {
     for (var j = 0; j < this.columns; j++) {
 
-        this.heights[i][j] =newGrid[i][j];
+        this.heights[i][j] =0;//newGrid[i][j];
 
     }
 }
@@ -219,9 +219,9 @@ const server = express()
 const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
-var terrainDetail:number=8;
-var maxVel : number = 10;
-var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.075,512/4);
+var terrainDetail:number=7;
+var maxVel : number = 40;
+var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.075,512/8);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
 class Client {
@@ -351,7 +351,7 @@ setInterval(() => io.emit('terrain', worldTerrain), 10000);
     time: new Date().getTime()
 }), 10);*/
 var lastTick=new Date().getTime();
-setInterval(tick, 200);
+setInterval(tick, 10);
 function tick() {
 var delta : number = Math.min(300, new Date().getTime()-lastTick);
 lastTick = new Date().getTime();
@@ -362,29 +362,30 @@ var newPosition : THREE.Vector3 = p
     .position
     .add(p.velocity.clone().multiplyScalar(delta / 1000));
 var newVelocity:THREE.Vector3=p.velocity.clone();
-newPosition.setY( newPosition.y - worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z));
+newPosition.setY(newPosition.y - worldTerrain.getTiltTermAtWorldCoord(newPosition.x, newPosition.z));
 newPosition.setX( ((newPosition.x + worldTerrain.gridSize / 2) % worldTerrain.gridSize + worldTerrain.gridSize) % worldTerrain.gridSize - worldTerrain.gridSize / 2);
 newPosition.setZ( ((newPosition.z + worldTerrain.gridSize / 2) % worldTerrain.gridSize + worldTerrain.gridSize) % worldTerrain.gridSize - worldTerrain.gridSize / 2);
-newPosition.setY( newPosition.y + worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z));
+newPosition.setY( newPosition.y + worldTerrain.getTiltTermAtWorldCoord(newPosition.x, newPosition.z));
 var vel=newVelocity.length();
 if(vel>maxVel){
 newVelocity = newVelocity.normalize().multiplyScalar(maxVel);
 }
 var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
 if(wHeight<= newPosition.y){
-    console.log("falling");
-newVelocity.setY( newVelocity.y - delta / 1000);
+    //console.log("falling");
+newVelocity.setY( newVelocity.y - delta / 100);
 }
 if (wHeight > newPosition.y) {
 var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
 console.log(terrainNormal);
 var deltaPos : THREE.Vector3 = dummy.subVectors(newPosition,new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
-var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(2 * deltaPos.dot(terrainNormal)));
-newPosition = dummy
-    .addVectors(dummy.subVectors(newPosition, deltaPos),deltaReflectPos);
-    console.log("before reflect",newVelocity);
+var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(2 * dummy.subVectors(new THREE.Vector3(0,0,0),deltaPos).dot(terrainNormal)));
+/*newPosition = dummy
+    .addVectors(dummy.subVectors(newPosition, deltaPos),deltaReflectPos.clone());*/
+newPosition.y=wHeight;
+    //console.log("before reflect",newVelocity);
 var reflectedVel : THREE.Vector3 = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(2 * newVelocity.dot(terrainNormal)));
-newVelocity=reflectedVel;//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
+newVelocity=dummy.addVectors(reflectedVel,new THREE.Vector3(0,0,worldTerrain.getTiltTermAtWorldCoord(0,2)));//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
 }
 vel = newVelocity.length();
 if (vel > maxVel) {
@@ -394,12 +395,12 @@ newVelocity = newVelocity
         .multiplyScalar(maxVel);
 }
 players[i]=p;
-console.log(newVelocity,newPosition);
+//console.log(newVelocity,newPosition);
 players[i].velocity=newVelocity;
 players[i].setPosition(newPosition.x,newPosition.y,newPosition.z);
 } 
 io.emit('players', players);
-    console.log("running TICK",players);
+    //console.log("running TICK",players);
 }
 
 function playerForId(id) {

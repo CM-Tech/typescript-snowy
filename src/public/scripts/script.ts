@@ -42,9 +42,9 @@ camera.position.z = myPlayer.position.z;
 inGame=true;
        }
     });
-var terrainDetail : number = 8;
-var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.5,512/4);
-var worldSize : number = 512 / 4;
+var terrainDetail : number = 7;
+var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.5,512/8);
+var worldSize : number = 512 / 8;
 var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
 var terrainStuff:Array<THREE.Object3D>=[];
 class ModelEntry {
@@ -127,14 +127,14 @@ socket
         worldSize=worldTerrain.gridSize;
        worldTerrain.setGridFromData(data.grid,data.heights,data.tilt);
 scene.remove(plane);
-planeGeometry  = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
+planeGeometry  = new THREE.PlaneGeometry(worldSize*3, worldSize*3, worldTerrain.rows*3, worldTerrain.columns*3);
 for (var i = 0; i < planeGeometry.vertices.length; i++) {
-var y : number = Math.floor(i / (worldTerrain.columns + 1)) % worldTerrain.rows;
-var yn : number = Math.floor(i / (worldTerrain.columns + 1));
-var x : number = Math.floor(i % (worldTerrain.columns + 1)) % worldTerrain.columns;
+var y : number = Math.floor(i / (worldTerrain.columns*3 + 1)) % worldTerrain.rows;
+var yn : number = Math.floor(i / (worldTerrain.columns*3 + 1));
+var x : number = Math.floor(i % (worldTerrain.columns*3 + 1)) % worldTerrain.columns;
     planeGeometry
         .vertices[i]
-.setComponent(2, worldTerrain.heights[y][x] );
+.setComponent(2, worldTerrain.heights[y][x] + worldTerrain.tilt * (y - worldTerrain.rows / 2) -  worldTerrain.tilt * (yn - 3*worldTerrain.rows / 2));
 }
 var tLen = terrainStuff.length+0;
 for(var i=0;i<tLen;i++){
