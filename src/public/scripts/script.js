@@ -143,6 +143,7 @@ function initSocket() {
                         object.castShadow = true;
                         object.receiveShadow = true;
                         terrainStuff.push(object);
+                        object.rotation.y = item.rotation;
                         object
                             .position
                             .set((item.gx - worldTerrain.columns / 2) * worldSize / worldTerrain.columns, item.height, (item.gz - worldTerrain.rows / 2) * worldSize / worldTerrain.rows);
@@ -277,4 +278,5 @@ function onDocumentMouseMove(event) {
     camera.rotation.z = 0; //mouseY / windowHalfY * Math.PI * 2;
     camera.rotation.x = 0;
     camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+    socket.emit("rotation", -mouseX / windowHalfX * Math.PI * 2);
 }

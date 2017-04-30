@@ -238,7 +238,7 @@ const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
 var terrainDetail:number=7;
-var maxVel : number = 40;
+var maxVel : number = 10;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.075,512/8);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
@@ -299,6 +299,10 @@ socket.emit('terrain', worldTerrain);
         socket.on('active', function (data) {
             playerInfo.lastActive = new Date().getTime();
         });
+socket
+    .on('rotation', function (data) {
+        playerInfo.rotation.y = data||0;
+    });
 socket.emit('terrain', worldTerrain);
         }
     });
@@ -402,8 +406,30 @@ var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.c
     .addVectors(dummy.subVectors(newPosition, deltaPos),deltaReflectPos.clone());*/
 newPosition.y=wHeight;
     //console.log("before reflect",newVelocity);
-var reflectedVel : THREE.Vector3 = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(1.1 * newVelocity.dot(terrainNormal)));
-newVelocity=dummy.addVectors(reflectedVel,new THREE.Vector3(0,0,-worldTerrain.getTiltTermAtWorldCoord(0,2)));//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
+var playerDirVec : THREE.Vector3 = new THREE
+    .Vector3(0, 0, 1)
+.applyEuler(new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ"));
+playerDirVec.y=0;
+playerDirVec=playerDirVec.normalize();
+var addVelComp : THREE.Vector3 = dummy.addVectors(terrainNormal
+    .clone()
+.multiplyScalar(-1.0 * newVelocity.dot(terrainNormal)),
+new THREE.Vector3(0, 0, -worldTerrain.getTiltTermAtWorldCoord(0, 2)));
+var tempY = addVelComp.y+0;
+addVelComp.y=0;
+addVelComp = playerDirVec.clone().multiplyScalar(addVelComp.dot(playerDirVec));
+//addVelComp.y = tempY;
+var reflectedVel : THREE.Vector3 = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(1.0 * newVelocity.dot(terrainNormal)));
+reflectedVel = dummy.addVectors(reflectedVel, addVelComp.clone().multiplyScalar(0.2));
+newVelocity=reflectedVel;//dummy.addVectors(reflectedVel,new THREE.Vector3(0,0,-worldTerrain.getTiltTermAtWorldCoord(0,2)));//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
+var draggedVelComp : THREE.Vector3 = newVelocity.clone();
+var tempY2 = draggedVelComp.y + 0;
+draggedVelComp.y = 0;
+draggedVelComp = newVelocity
+    .clone()
+.multiplyScalar(draggedVelComp.dot(newVelocity));
+draggedVelComp.y = tempY2;
+newVelocity=newVelocity.lerp(draggedVelComp, 0.9);
 }
 vel = newVelocity.length();
 if (vel > maxVel) {
