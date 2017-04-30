@@ -42,7 +42,7 @@ camera.position.z = myPlayer.position.z;
 inGame=true;
        }
     });
-var terrainDetail : number = 7;
+var terrainDetail : number = 6;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.5,512/8);
 var worldSize : number = 512 / 8;
 var planeGeometry : THREE.PlaneGeometry = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
@@ -163,17 +163,58 @@ object
 .set((item.gx - worldTerrain.columns / 2) * worldSize / worldTerrain.columns, item.height, (item.gz - worldTerrain.rows/2) * worldSize / worldTerrain.rows);
     scene.add(object);
 
+object = object.clone();
+terrainStuff.push(object);
+object
+    .position
+    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize+worldSize, item.height , ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows ) * worldSize);
+scene.add(object);
+
+object = object.clone();
+terrainStuff.push(object);
+object
+    .position
+    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows) * worldSize);
+scene.add(object);
+
+object = object.clone();
+terrainStuff.push(object);
+object
+    .position
+    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize-worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+scene.add(object);
 object=object.clone();
 terrainStuff.push(object);
 object
     .position
 .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height - worldTerrain.rows*worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
 scene.add(object);
+
+object = object.clone();
+terrainStuff.push(object);
+object
+    .position
+    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize+worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+scene.add(object);
+
 object = object.clone();
 terrainStuff.push(object);
 object
     .position
     .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+scene.add(object);
+
+object = object.clone();
+terrainStuff.push(object);
+object
+    .position
+    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize+worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+scene.add(object);
+object = object.clone();
+terrainStuff.push(object);
+object
+    .position
+    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
 scene.add(object);
 }
 }

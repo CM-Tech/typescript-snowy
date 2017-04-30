@@ -37,7 +37,7 @@ socket
         inGame = true;
     }
 });
-var terrainDetail = 7;
+var terrainDetail = 6;
 var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail), 0.5, 512 / 8);
 var worldSize = 512 / 8;
 var planeGeometry = new THREE.PlaneGeometry(worldSize, worldSize, worldTerrain.rows, worldTerrain.columns);
@@ -152,13 +152,49 @@ function initSocket() {
                         terrainStuff.push(object);
                         object
                             .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize + worldSize, item.height, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
                             .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
                         scene.add(object);
                         object = object.clone();
                         terrainStuff.push(object);
                         object
                             .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize + worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
                             .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize + worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+                        scene.add(object);
+                        object = object.clone();
+                        terrainStuff.push(object);
+                        object
+                            .position
+                            .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
                         scene.add(object);
                     }
                 }

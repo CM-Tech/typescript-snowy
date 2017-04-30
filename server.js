@@ -207,7 +207,7 @@ var server = express()
 var io = SocketIO(server);
 var clients = [];
 var players = [];
-var terrainDetail = 7;
+var terrainDetail = 6;
 var maxVel = 10;
 var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail), 0.075, 512 / 8);
 worldTerrain.generateHeights();
@@ -373,13 +373,14 @@ function tick() {
                 .applyEuler(new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ"));
             playerDirVec.y = 0;
             playerDirVec = playerDirVec.normalize();
-            var addVelComp = dummy.addVectors(terrainNormal
+            var addVelComp = dummy.addVectors(dummy.addVectors(terrainNormal
                 .clone()
-                .multiplyScalar(-1.0 * newVelocity.dot(terrainNormal)), new THREE.Vector3(0, 0, -worldTerrain.getTiltTermAtWorldCoord(0, 2)));
+                .multiplyScalar(-1.0 * newVelocity.dot(terrainNormal)), new THREE.Vector3(0, 0, -worldTerrain.getTiltTermAtWorldCoord(0, 2))), playerDirVec.clone().multiplyScalar(-worldTerrain
+                .getTiltTermAtWorldCoord(0, 2)));
             var tempY = addVelComp.y + 0;
             addVelComp.y = 0;
             addVelComp = playerDirVec.clone().multiplyScalar(addVelComp.dot(playerDirVec));
-            addVelComp.y = tempY * 0.1;
+            addVelComp.y = tempY * 0.9;
             var reflectedVel = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(1.0 * newVelocity.dot(terrainNormal)));
             reflectedVel = dummy.addVectors(reflectedVel, addVelComp.clone().multiplyScalar(0.9));
             newVelocity = reflectedVel; //dummy.addVectors(reflectedVel,new THREE.Vector3(0,0,-worldTerrain.getTiltTermAtWorldCoord(0,2)));//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
