@@ -32,11 +32,13 @@
         "socket.io-client": "^1.7.3",
         "three": "^0.85.2",
         "ts-node": "^3.0.2",
-        "typescript": "^2.2.2"
+        "typescript": "^2.2.2",
+        "typings": "^2.1.1"
     },
     "devDependencies": {
         "three": "^0.85.2",
         "typescript": "^2.2.2",
-        "ts-node": "^3.0.2"
+        "ts-node": "^3.0.2",
+        "typings": "^2.1.1"
     }
 }
