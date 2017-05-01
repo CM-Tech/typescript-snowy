@@ -4,6 +4,14 @@
 /// <reference path="./typings/modules/express/index.d.ts" />
 /// <reference path="./src/public/shared/Player.ts"/>
 /// <reference path="./src/public/shared/Terrain.ts"/>
+/*
+           (,_    ,_,    _,)
+           /|\`-._( )_.-'/|\
+          / | \`-'/ \'-`/ | \
+         /__|.-'`-\_/-`'-.|__\
+        `          "          `
+        Sorry For The BAT Pun
+*/
 declare function require(name: string);
 import THREE = require('three');
 //import "./src/public/shared/Player";
@@ -96,7 +104,7 @@ return -this.tilt * ((z / this.gridSize + 0.5) * this.rows - this.rows / 2);
 getTiltTermAtGridCoord(x : number, y : number) : number {
     return -this.tilt * (y - this.rows / 2);
 }
-getSurfaceNormalArWorldCoord(x:number,z:number):THREE.Vector3{
+getSurfaceNormalAtWorldCoord(x:number,z:number):THREE.Vector3{
 var dummy = new THREE.Vector3(0, 0, 0);
 var A:THREE.Vector3=new THREE.Vector3(x,0.0,z+0.5);
 A.y=( this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
@@ -380,6 +388,8 @@ lastTick = new Date().getTime();
 var dummy = new THREE.Vector3(0, 0, 0);
 for(var i=0;i<players.length;i++){
     var p:Player=players[i];
+    var newRotation: THREE.Vector3 = p
+        .rotation.clone();
 var newPosition : THREE.Vector3 = p
     .position
     .add(p.velocity.clone().multiplyScalar(delta / 1000));
@@ -395,10 +405,10 @@ newVelocity = newVelocity.normalize().multiplyScalar(maxVel);
 var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
 if(wHeight<= newPosition.y){
     //console.log("falling");
-newVelocity.setY( newVelocity.y - delta / 100);
+newVelocity.setY( newVelocity.y - 5*(delta / 1000));
 }
-if (wHeight > newPosition.y) {
-var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
+if (wHeight > newPosition.y+0.01) {
+var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalAtWorldCoord(newPosition.x, newPosition.z);
 //console.log(terrainNormal);
 var deltaPos : THREE.Vector3 = dummy.subVectors(newPosition,new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
 var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(1.1 * dummy.subVectors(new THREE.Vector3(0,0,0),deltaPos).dot(terrainNormal)));
@@ -409,6 +419,16 @@ newPosition.y=wHeight;
 var playerDirVec : THREE.Vector3 = new THREE
     .Vector3(0, 0, 1)
 .applyEuler(new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ"));
+    var playerDirVecLeft: THREE.Vector3 = dummy.crossVectors(new THREE.Vector3(0,1,0),playerDirVec).clone();
+    var playerDirVecFlat: THREE.Vector3 = new THREE
+        .Vector3(playerDirVec.x, 0, playerDirVec.z).normalize();
+    var playerDirVecProjected: THREE.Vector3=playerDirVec.clone().projectOnPlane(terrainNormal).normalize();
+    var playerDirVecProjectedFlat: THREE.Vector3 = new THREE
+        .Vector3(playerDirVecProjected.x, 0, playerDirVecProjected.z).normalize();
+    var mx = new THREE.Matrix4().lookAt(playerDirVecProjected, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+    var qt = new THREE.Quaternion().setFromRotationMatrix(mx);
+    var eu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(qt);
+    newRotation = new THREE.Vector3(eu.x,eu.y,eu.z);
 playerDirVec.y=0;
 playerDirVec=playerDirVec.normalize();
 var addVelComp : THREE.Vector3 = dummy.addVectors(dummy.addVectors(terrainNormal
@@ -444,6 +464,7 @@ players[i]=p;
 //console.log(newVelocity,newPosition);
 players[i].velocity=newVelocity;
 players[i].setPosition(newPosition.x,newPosition.y,newPosition.z);
+    players[i].setRotation(newRotation.x, newRotation.y, newRotation.z);
 } 
 io.emit('players', players);
     //console.log("running TICK",players);

@@ -58,7 +58,7 @@ return -this.tilt * ((z / this.gridSize + 0.5) * this.rows - this.rows / 2);
 getTiltTermAtGridCoord(x : number, y : number) : number {
     return -this.tilt * (y - this.rows / 2);
 }
-getSurfaceNormalArWorldCoord(x:number,z:number):THREE.Vector3{
+getSurfaceNormalAtWorldCoord(x:number,z:number):THREE.Vector3{
 var dummy = new THREE.Vector3(0, 0, 0);
 var A:THREE.Vector3=new THREE.Vector3(x,0.0,z+0.5);
 A.y=( this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));

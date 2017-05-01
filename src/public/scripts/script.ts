@@ -14,6 +14,7 @@ var socket = io();
 var players:Array<Player>=[];
 var myPlayer:Player=null;
 var lastPlayerTime:number=0;
+
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
         var c = players[i];
@@ -30,6 +31,7 @@ console.log("hello client");
 socket.on('spawn', function (data) {
     console.log(data);
 });
+var playerStuff: Array<THREE.Object3D> = [];
 socket
     .on('players', function (data) {
        players=data;
@@ -37,9 +39,46 @@ lastPlayerTime=new Date().getTime();
 if (playerForId(socket.id)!=null) {
 myPlayer = playerForId(socket.id);
 camera.position.x=myPlayer.position.x;
-camera.position.y = myPlayer.position.y+5;
+camera.position.y = myPlayer.position.y+1.5;
 camera.position.z = myPlayer.position.z;
 inGame=true;
+       }
+var pLen = playerStuff.length + 0;
+for (var i = 0; i < pLen; i++) {
+    scene.remove(playerStuff.pop());
+}
+       for(var i=0;i<players.length;i++){
+            var playerGroup: THREE.Object3D = new THREE.Object3D();
+            var skis:THREE.Object3D=new THREE.Object3D();
+            var ski: THREE.Object3D = new THREE.Object3D();
+            var skiBaseGeometry = new THREE.BoxGeometry(0.075, 0.025, 1.35);
+            var skiBaseMaterial = new THREE.MeshToonMaterial({ color: 0x888888, specular: 0x777777, shininess: 0.5, shading: THREE.FlatShading });
+            var skiBase: THREE.Mesh = new THREE.Mesh(skiBaseGeometry, skiBaseMaterial);
+            skiBase.position.z=-0.15/4;
+            skiBase.castShadow = true;
+            skiBase.receiveShadow = true;
+            ski.add(skiBase);
+            var skiTipGeometry = new THREE.BoxGeometry(0.075, 0.025, 0.15);
+            var skiTipMaterial = new THREE.MeshToonMaterial({ color: 0xFF7777, specular: 0xdF4444, shininess: 0.5, shading: THREE.FlatShading });
+            var skiTip: THREE.Mesh = new THREE.Mesh(skiTipGeometry, skiTipMaterial);
+            skiTip.position.z = 1.35/2+0.15 / 4;
+            skiTip.castShadow = true;
+            skiTip.receiveShadow = true;
+            ski.add(skiTip);
+            var skiLeft=ski.clone();
+            skiLeft.position.x=0.3;
+            var skiRight = ski.clone();
+            skiRight.position.x = -0.3;
+            playerGroup.add(skiLeft);
+            playerGroup.add(skiRight);
+            playerGroup.position.x=players[i].position.x;
+            playerGroup.position.y = players[i].position.y;
+            playerGroup.position.z = players[i].position.z;
+            playerGroup.rotation.x = players[i].rotation.x;
+            playerGroup.rotation.y = players[i].rotation.y;
+            playerGroup.rotation.z = players[i].rotation.z;
+            scene.add(playerGroup);
+            playerStuff.push(playerGroup);
        }
     });
 var terrainDetail : number = 6;
@@ -86,9 +125,23 @@ function init() {
     document
         .body
         .appendChild(renderer.domElement);
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    renderer.domElement.onclick=function(event:MouseEvent){
+        
+        document.exitPointerLock = eval("document.exitPointerLock || document.mozExitPointerLock");
+        if (document.pointerLockElement!==renderer.domElement){
+        if(event.button===0){
+            renderer.domElement.requestPointerLock();
+        }else if(event.button===2){
+            document.exitPointerLock();
+        }
+        }
+    }
+    renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
     window.addEventListener('resize', onWindowResize, false);
 loadModel("naturePack_084","tree_1");
+    socket.on('connect', function () {
+        socket.emit("join", { username: "BOB" });
+    })
 }
 
 
@@ -234,7 +287,7 @@ plane.castShadow = true;
 scene.add(plane);
     });
 }
-socket.emit("join", {username: "BOB"});
+
 function initCamera() {
     camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 40);
     camera
@@ -336,6 +389,7 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 function onDocumentMouseMove(event) {
+    if(document.pointerLockElement !== renderer.domElement){
     mouseX = (event.clientX - windowHalfX) / 2;
     mouseY = (event.clientY - windowHalfY) / 2;
 camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
@@ -343,4 +397,14 @@ camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
 camera.rotation.x = 0;
 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
 socket.emit("rotation", -mouseX / windowHalfX * Math.PI * 2);
+    }else{
+        mouseX += (event.movementX) / 2;
+        mouseY += (event.movementY) / 2;
+        mouseY = Math.min(Math.max(mouseY, -windowHalfY/2), windowHalfY/2);
+        camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
+        camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
+        camera.rotation.x = 0;
+        camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+        socket.emit("rotation", -mouseX / windowHalfX * Math.PI * 2);
+    }
 }

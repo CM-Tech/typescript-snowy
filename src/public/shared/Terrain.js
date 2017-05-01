@@ -52,7 +52,7 @@ var TerrainGrid = (function () {
     TerrainGrid.prototype.getTiltTermAtGridCoord = function (x, y) {
         return -this.tilt * (y - this.rows / 2);
     };
-    TerrainGrid.prototype.getSurfaceNormalArWorldCoord = function (x, z) {
+    TerrainGrid.prototype.getSurfaceNormalAtWorldCoord = function (x, z) {
         var dummy = new THREE.Vector3(0, 0, 0);
         var A = new THREE.Vector3(x, 0.0, z + 0.5);
         A.y = (this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
