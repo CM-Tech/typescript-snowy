@@ -380,9 +380,9 @@ function tick() {
             var tempY = addVelComp.y + 0;
             addVelComp.y = 0;
             addVelComp = playerDirVec.clone().multiplyScalar(addVelComp.dot(playerDirVec));
-            addVelComp.y = tempY * 0.9;
+            addVelComp.y = tempY * 0.1;
             var reflectedVel = dummy.subVectors(newVelocity, terrainNormal.clone().multiplyScalar(1.0 * newVelocity.dot(terrainNormal)));
-            reflectedVel = dummy.addVectors(reflectedVel, addVelComp.clone().multiplyScalar(0.9));
+            reflectedVel = dummy.addVectors(reflectedVel, addVelComp.clone().multiplyScalar(0.3));
             newVelocity = reflectedVel; //dummy.addVectors(reflectedVel,new THREE.Vector3(0,0,-worldTerrain.getTiltTermAtWorldCoord(0,2)));//.y += worldTerrain.deflectVelAtWorldCoord(newPosition.x, newPosition.z) - delta / 1000;
             var draggedVelComp = newVelocity.clone();
             var tempY2 = draggedVelComp.y + 0;
