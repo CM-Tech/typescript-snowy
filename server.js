@@ -199,10 +199,10 @@ var express = require("express");
 var path = require("path");
 var PORT = process.env.PORT || 9000;
 console.log(__dirname);
-var INDEX = path.join(__dirname, 'src\\public\\index.html');
+var INDEX = path.join(__dirname, 'src/public/index.html');
 var playerColors = [0xf9ff60, 0xff6060, 0x82ff60, 0x607eff, 0x60eaff, 0xff60ee, 0xe360ff, 0xffaf60, 0xa3ff60, 0xff609c, 0x60ff82, 0xcc60ff, 0xc65959, 0xf2d957, 0xc55252, 0x498e56, 0xc45151, 0xc35454, 0xc85757, 0xc85959, 0x5b74b6, 0x5c81bd, 0x5bb146, 0xd8c963, 0x404b7f];
 var server = express()
-    .use("/", express.static(path.join(__dirname, 'src\\public\\'))).use('/node_scripts/', express.static(path.join(__dirname, 'node_modules\\')))
+    .use("/", express.static(path.join(__dirname, 'src/public/'))).use('/node_scripts/', express.static(path.join(__dirname, 'node_modules/')))
     .listen(PORT, function () { return console.log("Listening on " + PORT); });
 var io = SocketIO(server);
 var clients = [];
