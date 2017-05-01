@@ -138,6 +138,7 @@ function init() {
     }
     renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
     window.addEventListener('resize', onWindowResize, false);
+    renderer.domElement.requestPointerLock();
 loadModel("naturePack_084","tree_1");
     socket.on('connect', function () {
         socket.emit("join", { username: "BOB" });
@@ -353,7 +354,7 @@ function initCube() {
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024; // default 512
     light.shadow.mapSize.height = 1024; // default 512
-    light.shadow.camera.near = 2; // default 0.5
+    light.shadow.camera.near = 0.5; // default 0.5
     light.shadow.camera.far = 1000;
     light.lookAt(scene.position);
     scene.add(light);
