@@ -57,8 +57,11 @@ class ModelEntry {
 }
 function getModelByName(name : string) {
     for (var modelEntry of models) {
-        if (modelEntry.name == name) {
-            return modelEntry.mesh.clone(true);
+        if (modelEntry.name === name) {
+var geometry = (modelEntry.mesh.children[0]as THREE.Mesh).geometry as THREE.BufferGeometry;
+var material = (modelEntry.mesh.children[0] as THREE.Mesh).material;
+
+return new THREE.Mesh(geometry, material);
         }
     }
     return null;
@@ -144,7 +147,7 @@ for(var x=0;x<worldTerrain.grid[0].length;x++){
     for (var y = 0; y < worldTerrain.grid.length; y++) {
 var terrainSquareItems : Array < GridSquare >= worldTerrain.grid[y][x];
 for (var item  of terrainSquareItems){
-var object:THREE.Object3D= getModelByName(item.modelLabel);
+var object:THREE.Mesh= getModelByName(item.modelLabel);
 if(object!==null){
 object
     .children
@@ -293,12 +296,12 @@ function initCube() {
     light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
-        .set(10, 10, -30);
+        .set(100, 100, -300);
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024; // default 512
     light.shadow.mapSize.height = 1024; // default 512
     light.shadow.camera.near = 2; // default 0.5
-    light.shadow.camera.far = 100;
+    light.shadow.camera.far = 1000;
     light.lookAt(scene.position);
     scene.add(light);
 var ambient = new THREE.AmbientLight(0xffffff, 0.5);

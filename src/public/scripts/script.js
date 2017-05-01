@@ -52,8 +52,10 @@ var ModelEntry = (function () {
 function getModelByName(name) {
     for (var _i = 0, models_1 = models; _i < models_1.length; _i++) {
         var modelEntry = models_1[_i];
-        if (modelEntry.name == name) {
-            return modelEntry.mesh.clone(true);
+        if (modelEntry.name === name) {
+            var geometry = modelEntry.mesh.children[0].geometry;
+            var material = modelEntry.mesh.children[0].material;
+            return new THREE.Mesh(geometry, material);
         }
     }
     return null;
@@ -271,12 +273,12 @@ function initCube() {
     light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
-        .set(10, 10, -30);
+        .set(100, 100, -300);
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024; // default 512
     light.shadow.mapSize.height = 1024; // default 512
     light.shadow.camera.near = 2; // default 0.5
-    light.shadow.camera.far = 100;
+    light.shadow.camera.far = 1000;
     light.lookAt(scene.position);
     scene.add(light);
     var ambient = new THREE.AmbientLight(0xffffff, 0.5);

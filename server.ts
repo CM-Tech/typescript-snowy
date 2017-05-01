@@ -137,7 +137,7 @@ this.heights[i][j]=0.0;
 }
 var newGrid : Array < Array < number >>= [[0]];
 while(newGrid.length<this.rows || newGrid[0].length<this.columns){
-newGrid = this.iterateGrid(newGrid, 1/newGrid.length/2);
+newGrid = this.iterateGrid(newGrid, 1/Math.pow(newGrid.length,1.5)/2);
 }
 
 for (var i = 0; i < this.rows; i++) {
@@ -239,7 +239,7 @@ var clients: Array<Client> = [];
 var players: Array<Player> = [];
 var terrainDetail:number=6;
 var maxVel : number = 10;
-var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.075,512/8);
+var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.15,512/8);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
 class Client {
@@ -393,10 +393,10 @@ if(vel>maxVel){
 newVelocity = newVelocity.normalize().multiplyScalar(maxVel);
 }
 var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
-//if(wHeight<= newPosition.y){
+if(wHeight<= newPosition.y){
     //console.log("falling");
 newVelocity.setY( newVelocity.y - delta / 100);
-//}
+}
 if (wHeight > newPosition.y) {
 var terrainNormal : THREE.Vector3 = worldTerrain.getSurfaceNormalArWorldCoord(newPosition.x, newPosition.z);
 //console.log(terrainNormal);
