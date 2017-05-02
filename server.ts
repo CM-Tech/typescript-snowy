@@ -302,7 +302,7 @@ socket.emit('terrain', worldTerrain);
         console.log(`Join ${socket.id}`);
         data=data||{};
         console.log(data);
-        if(data.username){
+        if(data.username!==undefined){
         var playerInfo = new Player(socket.id,data.username);
         //playerInfo.username = data.username;
         //playerInfo.playerId = socket.id;
@@ -396,7 +396,7 @@ socket.emit('terrain', worldTerrain);
 var lastTick=new Date().getTime();
 setInterval(tick, 10);
 function tick() {
-var delta : number = Math.min(300, new Date().getTime()-lastTick);
+var delta : number = Math.min(100, new Date().getTime()-lastTick);
 lastTick = new Date().getTime();
 var dummy = new THREE.Vector3(0, 0, 0);
 for(var i=0;i<players.length;i++){
@@ -432,12 +432,15 @@ newVelocity.setY( newVelocity.y - 5*(delta / 1000));
     var playerDirVecProjected: THREE.Vector3 = playerDirVec.clone().projectOnPlane(largeNormal).normalize();
     var playerDirVecProjectedFlat: THREE.Vector3 = new THREE
         .Vector3(playerDirVecProjected.x, 0, playerDirVecProjected.z).normalize();
-    var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.lerp(playerDirVec, Math.min((newPosition.y - 0.1 - wHeight)/0.1,1)/2), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+    var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.lerp(playerDirVec, Math.min((newPosition.y - 0.1 - wHeight)/0.1,1)/100*delta/10), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
     var qt = new THREE.Quaternion().setFromRotationMatrix(mx);
     var eu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(qt);
     newRotation = new THREE.Vector3(eu.x, eu.y, eu.z);
-}
-if (wHeight > newPosition.y+0.01) {
+    newRotation.y=p.rotation.y
+    newRotation.x = (newRotation.x + Math.PI / 2) % Math.PI - Math.PI / 2;
+    newRotation.z = (newRotation.z + Math.PI / 2) % Math.PI - Math.PI / 2;
+
+if (wHeight > newPosition.y) {
 //console.log(terrainNormal);
 var deltaPos : THREE.Vector3 = dummy.subVectors(newPosition,new THREE.Vector3(newPosition.x, wHeight, newPosition.z));
 var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.clone().multiplyScalar(1.1 * dummy.subVectors(new THREE.Vector3(0,0,0),deltaPos).dot(terrainNormal)));
@@ -445,19 +448,6 @@ var deltaReflectPos : THREE.Vector3 = dummy.subVectors(deltaPos, terrainNormal.c
     .addVectors(dummy.subVectors(newPosition, deltaPos),deltaReflectPos.clone());*/
 newPosition.y=wHeight;
     //console.log("before reflect",newVelocity);
-var playerDirVec : THREE.Vector3 = new THREE
-    .Vector3(0, 0, 1)
-    .applyEuler(new THREE.Euler(newRotation.x, newRotation.y, newRotation.z, "XYZ"));
-    var playerDirVecLeft: THREE.Vector3 = dummy.crossVectors(new THREE.Vector3(0,1,0),playerDirVec).clone();
-    var playerDirVecFlat: THREE.Vector3 = new THREE
-        .Vector3(playerDirVec.x, 0, playerDirVec.z).normalize();
-    var playerDirVecProjected: THREE.Vector3=playerDirVec.clone().projectOnPlane(largeNormal).normalize();
-    var playerDirVecProjectedFlat: THREE.Vector3 = new THREE
-        .Vector3(playerDirVecProjected.x, 0, playerDirVecProjected.z).normalize();
-    var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.lerp(playerDirVec,0.5), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
-    var qt = new THREE.Quaternion().setFromRotationMatrix(mx);
-    var eu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(qt);
-    newRotation = new THREE.Vector3(eu.x,eu.y,eu.z);
 playerDirVec.y=0;
 playerDirVec=playerDirVec.normalize();
 var addVelComp : THREE.Vector3 = dummy.addVectors(dummy.addVectors(terrainNormal
@@ -482,6 +472,7 @@ draggedVelComp = playerDirVec
 draggedVelComp.y = tempY2;
 newVelocity=newVelocity.lerp(draggedVelComp, 0.3);
 }
+    }
 vel = newVelocity.length();
 if (vel > maxVel) {
 newVelocity = newVelocity

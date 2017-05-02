@@ -15,7 +15,9 @@ var players:Array<Player>=[];
 var myPlayer:Player=null;
 var lastPlayerTime:number=0;
 var username=prompt("username?");
-
+var scene: THREE.Scene,
+    camera: THREE.PerspectiveCamera,
+    renderer: THREE.WebGLRenderer;
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
         var c = players[i];
@@ -39,9 +41,15 @@ socket
 lastPlayerTime=new Date().getTime();
 if (playerForId(socket.id)!=null) {
 myPlayer = playerForId(socket.id);
-camera.position.x=myPlayer.position.x;
+/*camera.position.x=myPlayer.position.x;
 camera.position.y = myPlayer.position.y+1.5;
 camera.position.z = myPlayer.position.z;
+    camera.rotation.y = myPlayer.rotation.y + Math.PI;
+    //camera.rotation.z = myPlayer.rotation.z;//mouseY / windowHalfY * Math.PI * 2;
+    //camera.rotation.x = myPlayer.rotation.x;
+    camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+    camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);*/
 inGame=true;
        }
 var pLen = playerStuff.length + 0;
@@ -74,12 +82,29 @@ for (var i = 0; i < pLen; i++) {
             
             playerGroup.add(skiLeft);
             playerGroup.add(skiRight);
+            /*if (players[i].clientId === socket.id) {
+                camera.position=new THREE.Vector3(0,1.5,0);
+                camera.rotation = new THREE.Euler(0,0,0,'XYZ');
+//playerGroup.add(camera);
+            }*/
             playerGroup.position.x=players[i].position.x;
             playerGroup.position.y = players[i].position.y;
             playerGroup.position.z = players[i].position.z;
             playerGroup.rotation.x = players[i].rotation.x;
             playerGroup.rotation.y = players[i].rotation.y;
             playerGroup.rotation.z = players[i].rotation.z;
+            if (players[i].playerId === socket.id) {
+                var newPos: THREE.Vector3 = playerGroup.getWorldPosition().clone().add(new THREE.Vector3(0, 1.5, 0).applyEuler(playerGroup.rotation.clone()));
+                camera.position.x = newPos.x;
+                camera.position.y = newPos.y;
+                camera.position.z = newPos.z;
+                
+                camera.setRotationFromEuler(playerGroup.rotation.clone());
+                camera.rotateY(Math.PI * 1);
+                camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+                //camera.rotation.y = -camera.rotation.y;
+                //playerGroup.add(camera);
+            }
             scene.add(playerGroup);
             playerStuff.push(playerGroup);
        }
@@ -108,9 +133,6 @@ return new THREE.Mesh(geometry, material);
     }
     return null;
 }
-var scene : THREE.Scene,
-    camera:THREE.PerspectiveCamera,
-    renderer : THREE.WebGLRenderer;
 var effect;
 var WIDTH : number = window.innerWidth;
 var HEIGHT : number = window.innerHeight;
@@ -400,19 +422,20 @@ function onDocumentMouseMove(event) {
     if(document.pointerLockElement !== renderer.domElement){
     mouseX = (event.clientX - windowHalfX) / 2;
     mouseY = (event.clientY - windowHalfY) / 2;
-camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
-camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
-camera.rotation.x = 0;
-camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
-socket.emit("rotation", -mouseX / windowHalfX * Math.PI * 2);
+
     }else{
         mouseX += (event.movementX) / 2;
         mouseY += (event.movementY) / 2;
         mouseY = Math.min(Math.max(mouseY, -windowHalfY/2), windowHalfY/2);
-        camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
-        camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
-        camera.rotation.x = 0;
-        camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
-        socket.emit("rotation", -mouseX / windowHalfX * Math.PI * 2);
     }
+    /*camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
+    camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
+    camera.rotation.x = 0;
+    if (myPlayer) {
+        camera.rotation.y = myPlayer.rotation.y + Math.PI;
+        camera.rotation.z = myPlayer.rotation.z;//mouseY / windowHalfY * Math.PI * 2;
+        camera.rotation.x = myPlayer.rotation.x;
+    }*/
+    //camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+    socket.emit("rotation",- mouseX / windowHalfX * Math.PI * 2);
 }
