@@ -14,6 +14,7 @@ var socket = io();
 var players:Array<Player>=[];
 var myPlayer:Player=null;
 var lastPlayerTime:number=0;
+var username=prompt("username?");
 
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
@@ -51,24 +52,26 @@ for (var i = 0; i < pLen; i++) {
             var playerGroup: THREE.Object3D = new THREE.Object3D();
             var skis:THREE.Object3D=new THREE.Object3D();
             var ski: THREE.Object3D = new THREE.Object3D();
-            var skiBaseGeometry = new THREE.BoxGeometry(0.075, 0.025, 1.35);
+            var skiBaseGeometry = new THREE.BoxGeometry(0.15, 0.025, 2.70);
             var skiBaseMaterial = new THREE.MeshToonMaterial({ color: 0x888888, specular: 0x777777, shininess: 0.5, shading: THREE.FlatShading });
             var skiBase: THREE.Mesh = new THREE.Mesh(skiBaseGeometry, skiBaseMaterial);
-            skiBase.position.z=-0.15/4;
+            skiBase.position.z=-0.15/2;
             skiBase.castShadow = true;
             skiBase.receiveShadow = true;
             ski.add(skiBase);
-            var skiTipGeometry = new THREE.BoxGeometry(0.075, 0.025, 0.15);
+            var skiTipGeometry = new THREE.BoxGeometry(0.15, 0.025, 0.3);
             var skiTipMaterial = new THREE.MeshToonMaterial({ color: 0xFF7777, specular: 0xdF4444, shininess: 0.5, shading: THREE.FlatShading });
             var skiTip: THREE.Mesh = new THREE.Mesh(skiTipGeometry, skiTipMaterial);
-            skiTip.position.z = 1.35/2+0.15 / 4;
+            skiTip.position.z = 1.35/1+0.15 / 2;
             skiTip.castShadow = true;
             skiTip.receiveShadow = true;
             ski.add(skiTip);
+            ski.position.y = 0.0125;
             var skiLeft=ski.clone();
             skiLeft.position.x=0.3;
             var skiRight = ski.clone();
             skiRight.position.x = -0.3;
+            
             playerGroup.add(skiLeft);
             playerGroup.add(skiRight);
             playerGroup.position.x=players[i].position.x;
@@ -141,7 +144,7 @@ function init() {
     renderer.domElement.requestPointerLock();
 loadModel("naturePack_084","tree_1");
     socket.on('connect', function () {
-        socket.emit("join", { username: "BOB" });
+        socket.emit("join", { username: username });
     })
 }
 
@@ -352,10 +355,14 @@ function initCube() {
         .position
         .set(100, 100, -300);
     light.castShadow = true; // default false
-    light.shadow.mapSize.width = 1024; // default 512
-    light.shadow.mapSize.height = 1024; // default 512
+    light.shadow.mapSize.width = 1024*2; // default 512
+    light.shadow.mapSize.height = 1024*2; // default 512
     light.shadow.camera.near = 0.5; // default 0.5
-    light.shadow.camera.far = 1000;
+    light.shadow.camera.far = 1024;
+    light.shadowCameraLeft = -512;
+    light.shadowCameraRight = 512;
+    light.shadowCameraTop = 512;
+    light.shadowCameraBottom = -512;
     light.lookAt(scene.position);
     scene.add(light);
 var ambient = new THREE.AmbientLight(0xffffff, 0.5);
