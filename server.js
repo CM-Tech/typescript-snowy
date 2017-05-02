@@ -264,7 +264,7 @@ io.sockets.on('connection', function (socket) {
             var playerInfo = new Player(socket.id, data.username);
             //playerInfo.username = data.username;
             //playerInfo.playerId = socket.id;
-            playerInfo.color = playerColors[0];
+            playerInfo.color = playerColors[Math.floor(Math.random() * playerColors.length)];
             playerInfo.points = 0;
             playerInfo.tot = 0;
             playerInfo.lastActive = new Date().getTime();
