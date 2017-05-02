@@ -74,11 +74,26 @@ socket
         skiRight.position.x = -0.3;
         playerGroup.add(skiLeft);
         playerGroup.add(skiRight);
-        /*if (players[i].clientId === socket.id) {
-            camera.position=new THREE.Vector3(0,1.5,0);
-            camera.rotation = new THREE.Euler(0,0,0,'XYZ');
-//playerGroup.add(camera);
-        }*/
+        //if (players[i].clientId !== socket.id) {
+        var bodyGeometry = new THREE.BoxGeometry(1, 1, 1);
+        var coatRuffleGeometry = new THREE.BoxGeometry(1.08, 0.1, 1.08);
+        var bodyMaterial = new THREE.MeshToonMaterial({ color: players[i].color, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+        var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        var coatRuffle = new THREE.Mesh(coatRuffleGeometry, bodyMaterial);
+        body
+            .position
+            .set(0, 0.5, 0);
+        body.castShadow = true;
+        body.receiveShadow = true;
+        for (var j = 0; j < 5; j++) {
+            var coatRuffleClone = coatRuffle.clone();
+            coatRuffleClone.castShadow = true;
+            coatRuffleClone.receiveShadow = true;
+            coatRuffleClone.position.set(0, (j - 2) * 0.2, 0);
+            body.add(coatRuffleClone);
+        }
+        playerGroup.add(body);
+        //}
         playerGroup.position.x = players[i].position.x;
         playerGroup.position.y = players[i].position.y;
         playerGroup.position.z = players[i].position.z;

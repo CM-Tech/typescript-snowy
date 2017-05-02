@@ -92,7 +92,7 @@ var TerrainGrid = (function () {
         C.y = (this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
         var Dir = dummy.crossVectors(dummy
             .subVectors(B, A).clone(), dummy.subVectors(C, A).clone());
-        console.log("DIR", Dir);
+        //console.log("DIR",Dir);
         return Dir.normalize();
     };
     TerrainGrid.prototype.getSurfaceNormalAtWorldCoordLarge = function (x, z) {
@@ -105,7 +105,7 @@ var TerrainGrid = (function () {
         C.y = (this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
         var Dir = dummy.crossVectors(dummy
             .subVectors(B, A).clone(), dummy.subVectors(C, A).clone());
-        console.log("DIR", Dir);
+        //console.log("DIR", Dir);
         return Dir.normalize();
     };
     TerrainGrid.prototype.iterateGrid = function (grid, randScale) {

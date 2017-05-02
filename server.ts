@@ -114,7 +114,7 @@ var C : THREE.Vector3 = new THREE.Vector3(x-0.5, 0.0, z - 0.5);
 C.y=( this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
 var Dir : THREE.Vector3 = dummy.crossVectors(dummy
     .subVectors(B, A).clone(),dummy.subVectors(C, A).clone());
-    console.log("DIR",Dir);
+    //console.log("DIR",Dir);
 return Dir.normalize();
 }
     getSurfaceNormalAtWorldCoordLarge(x: number, z: number): THREE.Vector3 {
@@ -127,7 +127,7 @@ return Dir.normalize();
         C.y = (this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
         var Dir: THREE.Vector3 = dummy.crossVectors(dummy
             .subVectors(B, A).clone(), dummy.subVectors(C, A).clone());
-        console.log("DIR", Dir);
+        //console.log("DIR", Dir);
         return Dir.normalize();
     }
 iterateGrid(grid:Array < Array < number >>,randScale:number) : Array < Array < number >> {

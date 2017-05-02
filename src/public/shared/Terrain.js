@@ -65,6 +65,19 @@ var TerrainGrid = (function () {
         console.log("DIR", Dir);
         return Dir.normalize();
     };
+    TerrainGrid.prototype.getSurfaceNormalAtWorldCoordLarge = function (x, z) {
+        var dummy = new THREE.Vector3(0, 0, 0);
+        var A = new THREE.Vector3(x, 0.0, z + 1);
+        A.y = (this.getNoTiltHeightAtWorldCoord(A.x, A.z) + this.getTiltTermAtWorldCoord(A.x, A.z));
+        var B = new THREE.Vector3(x + 1, 0.0, z - 1);
+        B.y = (this.getNoTiltHeightAtWorldCoord(B.x, B.z) + this.getTiltTermAtWorldCoord(B.x, B.z));
+        var C = new THREE.Vector3(x - 1, 0.0, z - 1);
+        C.y = (this.getNoTiltHeightAtWorldCoord(C.x, C.z) + this.getTiltTermAtWorldCoord(C.x, C.z));
+        var Dir = dummy.crossVectors(dummy
+            .subVectors(B, A).clone(), dummy.subVectors(C, A).clone());
+        console.log("DIR", Dir);
+        return Dir.normalize();
+    };
     TerrainGrid.prototype.iterateGrid = function (grid, randScale) {
         var newGrid = [];
         for (var i = 0; i < grid.length * 2; i++) {
@@ -93,7 +106,7 @@ var TerrainGrid = (function () {
         }
         var newGrid = [[0]];
         while (newGrid.length < this.rows || newGrid[0].length < this.columns) {
-            newGrid = this.iterateGrid(newGrid, 1 / newGrid.length / 2);
+            newGrid = this.iterateGrid(newGrid, 1 / Math.pow(newGrid.length, 1.5) / 2);
         }
         for (var i = 0; i < this.rows; i++) {
             for (var j = 0; j < this.columns; j++) {
