@@ -252,7 +252,7 @@ io.sockets.on('connection', function (socket) {
         if (playerForId(socket.id)) {
             for (var i = 0, len = players.length; i < len; i++) {
                 var c = players[i];
-                if (c.playerId == socket.id) {
+                if (c.playerId === socket.id) {
                     players.splice(i, 1);
                     break;
                 }
@@ -291,7 +291,7 @@ io.sockets.on('connection', function (socket) {
         for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
             var c = players[i];
             if (c) {
-                if (c.playerId == socket.id) {
+                if (c.playerId === socket.id) {
                     players.splice(i, 1);
                     i--;
                     //break;
@@ -308,7 +308,7 @@ io.sockets.on('connection', function (socket) {
         for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
             var p = players[i];
             if (p) {
-                if (p.playerId == socket.id) {
+                if (p.playerId === socket.id) {
                     players.splice(i, 1);
                     i--;
                     //break;
@@ -320,7 +320,7 @@ io.sockets.on('connection', function (socket) {
         for (var i = 0, len = clients.length; i < Math.min(len, clients.length); i++) {
             var c = clients[i];
             if (c) {
-                if (c.clientId == socket.id) {
+                if (c.clientId === socket.id) {
                     clients.splice(i, 1);
                     i--;
                     //break;
@@ -463,7 +463,7 @@ function tick() {
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
         var c = players[i];
-        if (c.playerId == id) {
+        if (c.playerId === id) {
             return c;
         }
     }
@@ -475,7 +475,7 @@ function removePlayer(id) {
             for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
                 var c = players[i];
                 if (c) {
-                    if (c.playerId == id) {
+                    if (c.playerId === id) {
                         players.splice(i, 1);
                         i--;
                     }

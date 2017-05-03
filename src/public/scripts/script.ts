@@ -9,31 +9,31 @@
 // <reference path="../shared/Player.ts"/>
 // <reference path="./OutlineEffect.ts"/>
 // <reference path="../shared/Terrain.ts"/>
-var inGame:boolean=false;
+var inGame: boolean = false;
 var socket = io();
-var players:Array<Player>=[];
-var myPlayer:Player=null;
-var lastPlayerTime:number=0;
-var username=prompt("username?");
-var oldRot:THREE.Quaternion=new THREE.Quaternion(0,0,0,0);
+var players: Array<Player> = [];
+var myPlayer: Player = null;
+var lastPlayerTime: number = 0;
+var username = prompt("username?");
+var oldRot: THREE.Quaternion = new THREE.Quaternion(0, 0, 0, 0);
 var scene: THREE.Scene,
-    camera: THREE.PerspectiveCamera,
-    renderer: THREE.WebGLRenderer;
+  camera: THREE.PerspectiveCamera,
+  renderer: THREE.WebGLRenderer;
 function playerForId(id) {
-    for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
-        var c = players[i];
+  for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
+    var c = players[i];
 
-        if (c.playerId == id) {
-            return c;
-        }
+    if (c.playerId === id) {
+      return c;
     }
-    return null;
+  }
+  return null;
 }
-var tree:THREE.Object3D=null;
-var models:Array<ModelEntry>=[];
+var tree: THREE.Object3D = null;
+var models: Array<ModelEntry> = [];
 console.log("hello client");
-socket.on('spawn', function (data) {
-    console.log(data);
+socket.on('spawn', function(data) {
+  console.log(data);
 });
 var playerStuff: Array<THREE.Object3D> = [];
 socket
@@ -153,207 +153,254 @@ class ModelEntry {
     constructor(modelName : string, mesh : THREE.Mesh) {
         this.name = modelName;
         this.mesh = mesh;
-    }
+  }
 }
-function getModelByName(name : string) {
-    for (var modelEntry of models) {
-        if (modelEntry.name === name) {
-var geometry = (modelEntry.mesh.children[0]as THREE.Mesh).geometry as THREE.BufferGeometry;
-var material = (modelEntry.mesh.children[0] as THREE.Mesh).material;
 
-return new THREE.Mesh(geometry, material);
-        }
+function nearestPow2(num: number): number {
+  return Math.pow(2, Math.round(Math.log(num) / Math.log(2)));
+}
+
+function getFixedCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  var newCanvas = document.createElement("canvas");
+  newCanvas.width = nearestPow2(canvas.width);
+  newCanvas.height = nearestPow2(canvas.height);
+  var newCtx = newCanvas.getContext("2d");
+  newCtx.drawImage(canvas, 0, 0, newCanvas.width, newCanvas.height);
+  return newCanvas;
+}
+
+function createText(text: string, scale: number): THREE.Object3D {
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
+
+  var detail = 4;
+  var height = scale * detail;
+  ctx.font = height + "px Arial";
+  var width = ctx.measureText(text).width;
+
+  canvas.width = width;
+  canvas.height = height;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = height + "px Arial";
+  ctx.fillStyle = "black";
+  ctx.fillText(text, width / 2, height / 2);
+
+  var texture = new THREE.Texture(getFixedCanvas(canvas));
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+
+  var textPlane = new THREE.PlaneGeometry(width, height);
+  var material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: false });
+  var mesh = new THREE.Mesh(textPlane, material);
+
+  mesh.scale.set(1 / detail, 1 / detail, 1 / detail);
+  texture.needsUpdate = true;
+
+  return mesh;
+}
+
+function getModelByName(name: string) {
+  for (var modelEntry of models) {
+    if (modelEntry.name === name) {
+      var geometry = (modelEntry.mesh.children[0] as THREE.Mesh).geometry as THREE.BufferGeometry;
+      var material = (modelEntry.mesh.children[0] as THREE.Mesh).material;
+
+      return new THREE.Mesh(geometry, material);
     }
-    return null;
+  }
+  return null;
 }
 var effect;
-var WIDTH : number = window.innerWidth;
-var HEIGHT : number = window.innerHeight;
+var WIDTH: number = window.innerWidth;
+var HEIGHT: number = window.innerHeight;
 var mouseX = 0,
-    mouseY = 0;
+  mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
 
 function init() {
-    scene = new THREE.Scene();
-    initCamera();
-    initRenderer();
-    initCube();
-    initSocket();
-    document
-        .body
-        .appendChild(renderer.domElement);
-    renderer.domElement.onclick=function(event:MouseEvent){
-        
-        document.exitPointerLock = eval("document.exitPointerLock || document.mozExitPointerLock");
-        if (document.pointerLockElement!==renderer.domElement){
-        if(event.button===0){
-            renderer.domElement.requestPointerLock();
-        }else if(event.button===2){
-            document.exitPointerLock();
-        }
-        }
+  scene = new THREE.Scene();
+  initCamera();
+  initRenderer();
+  initCube();
+  initSocket();
+  document
+    .body
+    .appendChild(renderer.domElement);
+  renderer.domElement.onclick = function(event: MouseEvent) {
+
+    document.exitPointerLock = eval("document.exitPointerLock || document.mozExitPointerLock");
+    if (document.pointerLockElement !== renderer.domElement) {
+      if (event.button === 0) {
+        renderer.domElement.requestPointerLock();
+      } else if (event.button === 2) {
+        document.exitPointerLock();
+      }
     }
-    renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
-    window.addEventListener('resize', onWindowResize, false);
-    renderer.domElement.requestPointerLock();
-loadModel("naturePack_084","tree_1");
-    socket.on('connect', function () {
-        socket.emit("join", { username: username });
-    })
+  }
+  renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+  window.addEventListener('resize', onWindowResize, false);
+  renderer.domElement.requestPointerLock();
+  loadModel("naturePack_084", "tree_1");
+  socket.on('connect', function() {
+    socket.emit("join", { username: username });
+  })
 }
 
 
 function initSocket() {
-    socket
-        .on('cube', function (data) {
-            //cube.rotation.x = data.rotation.x;
-            //cube.rotation.y = data.rotation.y;
-            //cube.rotation.z = data.rotation.z;
-            if(tree==null){
-            scene.remove(tree);
-            tree = getModelByName("tree_1");
-if (tree != null) {
-    //tree.children
-tree
-    .children
-    .forEach(child => {
-child.castShadow = true;
+  socket
+    .on('cube', function(data) {
+      //cube.rotation.x = data.rotation.x;
+      //cube.rotation.y = data.rotation.y;
+      //cube.rotation.z = data.rotation.z;
+      if (tree === null) {
+        scene.remove(tree);
+        tree = getModelByName("tree_1");
+        if (tree !== null) {
+          //tree.children
+          tree
+            .children
+            .forEach(child => {
+              child.castShadow = true;
 
-child.receiveShadow = true;
+              child.receiveShadow = true;
+            });
+          tree.position.z = 1;
+          tree.castShadow = true;
+
+          tree.receiveShadow = true;
+          //scene.add(tree);
+        }
+      }
+      if (tree !== null) {
+        tree.rotation.x = data.rotation.x;
+        tree.rotation.y = data.rotation.y;
+        tree.rotation.z = data.rotation.z;
+      }
+      //console.log(cube, new Date().getTime() - data.time);
     });
-            tree.position.z = 1;
-            tree.castShadow = true;
-            
-            tree.receiveShadow = true;
-            //scene.add(tree);
-}
+  socket
+    .on('terrain', function(data) {
+      worldTerrain.gridSize = data.gridSize;
+      worldSize = worldTerrain.gridSize;
+      worldTerrain.setGridFromData(data.grid, data.heights, data.tilt);
+      scene.remove(plane);
+      planeGeometry = new THREE.PlaneGeometry(worldSize * 3, worldSize * 3, worldTerrain.rows * 3, worldTerrain.columns * 3);
+      for (var i = 0; i < planeGeometry.vertices.length; i++) {
+        var y: number = Math.floor(i / (worldTerrain.columns * 3 + 1)) % worldTerrain.rows;
+        var yn: number = Math.floor(i / (worldTerrain.columns * 3 + 1));
+        var x: number = Math.floor(i % (worldTerrain.columns * 3 + 1)) % worldTerrain.columns;
+        planeGeometry
+          .vertices[i]
+          .setComponent(2, worldTerrain.heights[y][x] + worldTerrain.tilt * (y - worldTerrain.rows / 2) - worldTerrain.tilt * (yn - 3 * worldTerrain.rows / 2));
+      }
+      var tLen = terrainStuff.length + 0;
+      for (var i = 0; i < tLen; i++) {
+        scene.remove(terrainStuff.pop());
+      }
+      for (var x = 0; x < worldTerrain.grid[0].length; x++) {
+        for (var y = 0; y < worldTerrain.grid.length; y++) {
+          var terrainSquareItems: Array<GridSquare> = worldTerrain.grid[y][x];
+          for (var item of terrainSquareItems) {
+            var object: THREE.Mesh = getModelByName(item.modelLabel);
+            if (object !== null) {
+              object
+                .children
+                .forEach(child => {
+                  child.castShadow = true;
+
+                  child.receiveShadow = true;
+                });
+              object.castShadow = true;
+
+              object.receiveShadow = true;
+              terrainStuff.push(object);
+              object.rotation.y = item.rotation;
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) * worldSize / worldTerrain.columns, item.height, (item.gz - worldTerrain.rows / 2) * worldSize / worldTerrain.rows);
+              scene.add(object);
+
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize + worldSize, item.height, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows) * worldSize);
+              scene.add(object);
+
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows) * worldSize);
+              scene.add(object);
+
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+              scene.add(object);
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+              scene.add(object);
+
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize + worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
+              scene.add(object);
+
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+              scene.add(object);
+
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize + worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+              scene.add(object);
+              object = object.clone();
+              terrainStuff.push(object);
+              object
+                .position
+                .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
+              scene.add(object);
             }
-if (tree != null) {
-tree.rotation.x = data.rotation.x;
-tree.rotation.y = data.rotation.y;
-tree.rotation.z = data.rotation.z;
-}
-            //console.log(cube, new Date().getTime() - data.time);
-        });
-socket
-    .on('terrain', function (data) {
-        worldTerrain.gridSize=data.gridSize;
-        worldSize=worldTerrain.gridSize;
-       worldTerrain.setGridFromData(data.grid,data.heights,data.tilt);
-scene.remove(plane);
-planeGeometry  = new THREE.PlaneGeometry(worldSize*3, worldSize*3, worldTerrain.rows*3, worldTerrain.columns*3);
-for (var i = 0; i < planeGeometry.vertices.length; i++) {
-var y : number = Math.floor(i / (worldTerrain.columns*3 + 1)) % worldTerrain.rows;
-var yn : number = Math.floor(i / (worldTerrain.columns*3 + 1));
-var x : number = Math.floor(i % (worldTerrain.columns*3 + 1)) % worldTerrain.columns;
-    planeGeometry
-        .vertices[i]
-.setComponent(2, worldTerrain.heights[y][x] + worldTerrain.tilt * (y - worldTerrain.rows / 2) -  worldTerrain.tilt * (yn - 3*worldTerrain.rows / 2));
-}
-var tLen = terrainStuff.length+0;
-for(var i=0;i<tLen;i++){
-scene.remove(terrainStuff.pop());
-}
-for(var x=0;x<worldTerrain.grid[0].length;x++){
-    for (var y = 0; y < worldTerrain.grid.length; y++) {
-var terrainSquareItems : Array < GridSquare >= worldTerrain.grid[y][x];
-for (var item  of terrainSquareItems){
-var object:THREE.Mesh= getModelByName(item.modelLabel);
-if(object!==null){
-object
-    .children
-    .forEach(child => {
-        child.castShadow = true;
-
-        child.receiveShadow = true;
-    });
-object.castShadow = true;
-
-object.receiveShadow = true;
-    terrainStuff.push(object);
-object.rotation.y=item.rotation;
-object
-    .position
-.set((item.gx - worldTerrain.columns / 2) * worldSize / worldTerrain.columns, item.height, (item.gz - worldTerrain.rows/2) * worldSize / worldTerrain.rows);
-    scene.add(object);
-
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize+worldSize, item.height , ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows ) * worldSize);
-scene.add(object);
-
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows) * worldSize);
-scene.add(object);
-
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize-worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
-scene.add(object);
-object=object.clone();
-terrainStuff.push(object);
-object
-    .position
-.set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height - worldTerrain.rows*worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
-scene.add(object);
-
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize+worldSize, item.height - worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows + 1) * worldSize);
-scene.add(object);
-
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
-scene.add(object);
-
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize+worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
-scene.add(object);
-object = object.clone();
-terrainStuff.push(object);
-object
-    .position
-    .set((item.gx - worldTerrain.columns / 2) / worldTerrain.columns * worldSize - worldSize, item.height + worldTerrain.rows * worldTerrain.tilt, ((item.gz - worldTerrain.rows / 2) / worldTerrain.rows - 1) * worldSize);
-scene.add(object);
-}
-}
-    }
-}
-var planeMaterial = new THREE.MeshToonMaterial({color: 0xfefefe, specular: 0x000000, shininess: 0.0, shading: THREE.FlatShading})
-plane = new THREE.Mesh(planeGeometry, planeMaterial);
-plane
-    .position
-    .set(0, 0, 0);
-plane.rotation.x = -Math.PI / 2;
-plane.receiveShadow = true;
-plane.castShadow = true;
-scene.add(plane);
+          }
+        }
+      }
+      var planeMaterial = new THREE.MeshToonMaterial({ color: 0xfefefe, specular: 0x000000, shininess: 0.0, shading: THREE.FlatShading })
+      plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane
+        .position
+        .set(0, 0, 0);
+      plane.rotation.x = -Math.PI / 2;
+      plane.receiveShadow = true;
+      plane.castShadow = true;
+      scene.add(plane);
     });
 }
 
 function initCamera() {
-    camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 40);
-    camera
-        .position
-        .set(0, 10, 10);
-    camera.lookAt(scene.position);
-    //scene.fog=new THREE.Fog(0xeeeeee,50,75)
+  camera = new THREE.PerspectiveCamera(70, WIDTH / HEIGHT, 1, 40);
+  camera
+    .position
+    .set(0, 10, 10);
+  camera.lookAt(scene.position);
+  //scene.fog=new THREE.Fog(0xeeeeee,50,75)
 }
 
 function initRenderer() {
@@ -368,72 +415,72 @@ var cube;
 var light;
 var plane;
 //label is what to call it after import
-function loadModel(name : string,label:string) {
-    var mtlLoader = new THREE.MTLLoader();
-mtlLoader.setPath('models/');
-mtlLoader.load(name+'.mtl', function (materials) {
+function loadModel(name: string, label: string) {
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.setPath('models/');
+  mtlLoader.load(name + '.mtl', function(materials) {
     materials.preload();
     var objLoader = new THREE.OBJLoader();
     objLoader.setMaterials(materials);
     objLoader.setPath('models/');
-    objLoader.load(name+'.obj', function (object:THREE.Mesh) {
-        console.log(object);
-object.updateMatrix();
-var bbox:THREE.Box3 = new THREE
-    .Box3()
-    .setFromObject(object);
-    console.log(bbox);
-var center:THREE.Vector3=bbox.getCenter(new THREE.Vector3(0,0,0));
-object.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,0,-center.z));
-object.updateMatrix();
+    objLoader.load(name + '.obj', function(object: THREE.Mesh) {
+      console.log(object);
+      object.updateMatrix();
+      var bbox: THREE.Box3 = new THREE
+        .Box3()
+        .setFromObject(object);
+      console.log(bbox);
+      var center: THREE.Vector3 = bbox.getCenter(new THREE.Vector3(0, 0, 0));
+      object.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x, 0, -center.z));
+      object.updateMatrix();
 
-        //object.applyMatrix();
-        //object.geometry.computeBoundingBox();
-        // var center:THREE.Vector3=object.geometry.boundingBox.getCenter();
-        //object.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,-center.y,0))
-        models.push(new ModelEntry(label,object));
+      //object.applyMatrix();
+      //object.geometry.computeBoundingBox();
+      // var center:THREE.Vector3=object.geometry.boundingBox.getCenter();
+      //object.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-center.x,-center.y,0))
+      models.push(new ModelEntry(label, object));
     });
-});
+  });
 }
 function initCube() {
-    var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-    var boxMaterial = new THREE.MeshToonMaterial({color: 0xffffff, specular: 0x000000, shininess: 0, shading: THREE.FlatShading});
-    cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    cube
-        .position
-        .set(0, 1, 0);
-    cube.castShadow = true;
-    cube.receiveShadow = true;
-    //scene.add(cube);
-    light = new THREE.DirectionalLight(0xffffff, 0.5);
-    light
-        .position
-        .set(10, 100, -30);
-    light.castShadow = true; // default false
-    light.shadow.mapSize.width = 1024*2; // default 512
-    light.shadow.mapSize.height = 1024*2; // default 512
-    light.shadow.camera.near = 0.5; // default 0.5
-    light.shadow.camera.far = 1024;
-    light.shadowCameraLeft = -512;
-    light.shadowCameraRight = 512;
-    light.shadowCameraTop = 512;
-    light.shadowCameraBottom = -512;
-    light.lookAt(scene.position);
-    scene.add(light);
-var ambient = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambient);
-    //planeGeometry.vertices[0].setComponent(1,10);
-var planeMaterial = new THREE.MeshToonMaterial({color: 0xfefefe, specular: 0x000000, shininess: 0.0, shading: THREE.FlatShading})
-    plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    plane
-        .position
-        .set(0, -1, 0);
-    plane.rotation.x = -Math.PI / 2;
-    plane.receiveShadow = true;
-    plane.castShadow=true;
-    //scene.add(plane);
-    
+  var boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+  var boxMaterial = new THREE.MeshToonMaterial({ color: 0xffffff, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+  cube = new THREE.Mesh(boxGeometry, boxMaterial);
+  cube
+    .position
+    .set(0, 1, 0);
+  cube.castShadow = true;
+  cube.receiveShadow = true;
+  //scene.add(cube);
+  light = new THREE.DirectionalLight(0xffffff, 0.5);
+  light
+    .position
+    .set(10, 100, -30);
+  light.castShadow = true; // default false
+  light.shadow.mapSize.width = 1024 * 2; // default 512
+  light.shadow.mapSize.height = 1024 * 2; // default 512
+  light.shadow.camera.near = 0.5; // default 0.5
+  light.shadow.camera.far = 1024;
+  light.shadowCameraLeft = -512;
+  light.shadowCameraRight = 512;
+  light.shadowCameraTop = 512;
+  light.shadowCameraBottom = -512;
+  light.lookAt(scene.position);
+  scene.add(light);
+  var ambient = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambient);
+  //planeGeometry.vertices[0].setComponent(1,10);
+  var planeMaterial = new THREE.MeshToonMaterial({ color: 0xfefefe, specular: 0x000000, shininess: 0.0, shading: THREE.FlatShading })
+  plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  plane
+    .position
+    .set(0, -1, 0);
+  plane.rotation.x = -Math.PI / 2;
+  plane.receiveShadow = true;
+  plane.castShadow = true;
+  //scene.add(plane);
 }
+
 function render() {
     renderer.render(scene, camera);
     scene.autoUpdate=true;
@@ -445,30 +492,29 @@ init();
 render();
 
 function onWindowResize() {
-    windowHalfX = window.innerWidth / 2;
-    windowHalfY = window.innerHeight / 2;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  windowHalfX = window.innerWidth / 2;
+  windowHalfY = window.innerHeight / 2;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
 function onDocumentMouseMove(event) {
-    if(document.pointerLockElement !== renderer.domElement){
+  if (document.pointerLockElement !== renderer.domElement) {
     mouseX = (event.clientX - windowHalfX) / 2;
     mouseY = (event.clientY - windowHalfY) / 2;
-
-    }else{
-        mouseX += (event.movementX) / 2;
-        mouseY += (event.movementY) / 2;
-        mouseY = Math.min(Math.max(mouseY, -windowHalfY/2), windowHalfY/2);
-    }
-    /*camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
-    camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
-    camera.rotation.x = 0;
-    if (myPlayer) {
-        camera.rotation.y = myPlayer.rotation.y + Math.PI;
-        camera.rotation.z = myPlayer.rotation.z;//mouseY / windowHalfY * Math.PI * 2;
-        camera.rotation.x = myPlayer.rotation.x;
-    }*/
-    //camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
-    socket.emit("rotation",- mouseX / windowHalfX * Math.PI * 2);
+  } else {
+    mouseX += (event.movementX) / 2;
+    mouseY += (event.movementY) / 2;
+    mouseY = Math.min(Math.max(mouseY, -windowHalfY / 2), windowHalfY / 2);
+  }
+  /*camera.rotation.y = -mouseX / windowHalfX * Math.PI * 2 + Math.PI;
+  camera.rotation.z = 0;//mouseY / windowHalfY * Math.PI * 2;
+  camera.rotation.x = 0;
+  if (myPlayer) {
+      camera.rotation.y = myPlayer.rotation.y + Math.PI;
+      camera.rotation.z = myPlayer.rotation.z;//mouseY / windowHalfY * Math.PI * 2;
+      camera.rotation.x = myPlayer.rotation.x;
+  }*/
+  //camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+  socket.emit("rotation", - mouseX / windowHalfX * Math.PI * 2);
 }
