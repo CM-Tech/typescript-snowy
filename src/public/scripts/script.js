@@ -75,6 +75,9 @@ socket
         skiRight.position.x = -0.3;
         playerGroup.add(skiLeft);
         playerGroup.add(skiRight);
+        var name = createText(players[i].username, 16);
+        name.position.y = 70;
+        playerGroup.add(name);
         //if (players[i].clientId !== socket.id) {
         var bodyGeometry = new THREE.BoxGeometry(1, 1, 1);
         var coatRuffleGeometry = new THREE.BoxGeometry(1.08, 0.1, 1.08);
@@ -138,6 +141,42 @@ var ModelEntry = (function () {
     }
     return ModelEntry;
 }());
+function nearestPow2(num) {
+    return Math.pow(2, Math.round(Math.log(num) / Math.log(2)));
+}
+function getFixedCanvas(canvas) {
+    var newCanvas = document.createElement("canvas");
+    newCanvas.width = nearestPow2(canvas.width);
+    newCanvas.height = nearestPow2(canvas.height);
+    var newCtx = newCanvas.getContext("2d");
+    newCtx.drawImage(canvas, 0, 0, newCanvas.width, newCanvas.height);
+    return newCanvas;
+}
+function createText(text, scale) {
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
+    var detail = 4;
+    var height = scale * detail;
+    ctx.font = height + "px Arial";
+    var width = ctx.measureText(text).width;
+    canvas.width = width;
+    canvas.height = height;
+    ctx.clearRect(0, 0, width, height);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = height + "px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText(text, width / 2, height / 2);
+    var texture = new THREE.Texture(getFixedCanvas(canvas));
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    var textPlane = new THREE.PlaneGeometry(width, height);
+    var material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: false });
+    var mesh = new THREE.Mesh(textPlane, material);
+    mesh.scale.set(1 / detail, 1 / detail, 1 / detail);
+    texture.needsUpdate = true;
+    return mesh;
+}
 function getModelByName(name) {
     for (var _i = 0, models_1 = models; _i < models_1.length; _i++) {
         var modelEntry = models_1[_i];
