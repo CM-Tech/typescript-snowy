@@ -14,6 +14,7 @@ var Player = (function () {
         this.username = username;
         this.position = new THREE.Vector3(0, 0, 0);
         this.rotation = new THREE.Vector3(0, 0, 0);
+        this.quat = new THREE.Quaternion(0, 0, 0, 0);
         this.velocity = new THREE.Vector3(0, 0, 0);
     }
     Player.prototype.setRotation = function (x, y, z) {
@@ -279,7 +280,9 @@ io.sockets.on('connection', function (socket) {
             });
             socket
                 .on('rotation', function (data) {
+                var deltaR = (data || 0) - playerInfo.rotation.y;
                 playerInfo.rotation.y = data || 0;
+                playerInfo.quat = playerInfo.quat.multiplyQuaternions(playerInfo.quat.clone(), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, deltaR, 0, 'XYZ')));
             });
             socket.emit('terrain', worldTerrain);
         }
@@ -357,6 +360,10 @@ function tick() {
         var p = players[i];
         var newRotation = p
             .rotation.clone();
+        var newQuat = p
+            .quat.clone();
+        var eulerFromQuat = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(newQuat);
+        newRotation = new THREE.Vector3(eulerFromQuat.x, eulerFromQuat.y, eulerFromQuat.z);
         var newPosition = p
             .position
             .add(p.velocity.clone().multiplyScalar(delta / 1000));
@@ -384,15 +391,20 @@ function tick() {
         if (wHeight <= newPosition.y) {
             //console.log("falling");
             newVelocity.setY(newVelocity.y - 5 * (delta / 1000));
-            var Umx = new THREE.Matrix4().lookAt(playerDirVec.clone().lerp(playerDirVecFlat, Math.min(delta / 10 / 10, 1)), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+            var Umx = new THREE.Matrix4().lookAt(playerDirVecFlat, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
             var Uqt = new THREE.Quaternion().setFromRotationMatrix(Umx);
+            var Mqt = newQuat.slerp(Uqt, Math.min(delta / 10 / 20, 1));
             var Ueu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(Uqt);
-            newRotation = new THREE.Vector3(Ueu.x, Ueu.y, Ueu.z);
+            newQuat = Mqt.clone();
+            eulerFromQuat = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(newQuat);
+            newRotation = new THREE.Vector3(eulerFromQuat.x, eulerFromQuat.y, eulerFromQuat.z);
         }
         if (wHeight + 0.1 > newPosition.y) {
-            var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.clone().lerp(playerDirVec, Math.min((newPosition.y - 0.1 - wHeight) / 0.1, 1) / 100 * delta / 10), new THREE.Vector3(0, 0, 0), largeNormal);
+            var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.clone(), new THREE.Vector3(0, 0, 0), largeNormal);
             var qt = new THREE.Quaternion().setFromRotationMatrix(mx);
-            var eu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(qt);
+            var MqtF = newQuat.slerp(qt, Math.min(1 - Math.min(((wHeight - newPosition.y) / 0.1) / 10 * delta / 1, 1), 1));
+            newQuat = MqtF.clone();
+            var eu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(MqtF);
             newRotation = new THREE.Vector3(eu.x, eu.y, eu.z);
             newRotation.y = p.rotation.y;
             newRotation.x = (newRotation.x + Math.PI / 2) % Math.PI - Math.PI / 2;
@@ -438,6 +450,10 @@ function tick() {
         players[i] = p;
         //console.log(newVelocity,newPosition);
         players[i].velocity = newVelocity;
+        console.log(newQuat);
+        players[i].quat = newQuat.clone();
+        eulerFromQuat = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(newQuat);
+        newRotation = new THREE.Vector3(eulerFromQuat.x, eulerFromQuat.y, eulerFromQuat.z);
         players[i].setPosition(newPosition.x, newPosition.y, newPosition.z);
         players[i].setRotation(newRotation.x, newRotation.y, newRotation.z);
     }

@@ -15,7 +15,7 @@ var players:Array<Player>=[];
 var myPlayer:Player=null;
 var lastPlayerTime:number=0;
 var username=prompt("username?");
-var oldRot:THREE.Euler=new THREE.Euler(0,0,0);
+var oldRot:THREE.Quaternion=new THREE.Quaternion(0,0,0,0);
 var scene: THREE.Scene,
     camera: THREE.PerspectiveCamera,
     renderer: THREE.WebGLRenderer;
@@ -117,15 +117,20 @@ for (var i = 0; i < pLen; i++) {
                 camera.position.x = newPos.x;
                 camera.position.y = newPos.y;
                 camera.position.z = newPos.z;
-                var currentDir = new THREE.Vector3(0, 0, 1).applyEuler(oldRot);
-                var nextDir = new THREE.Vector3(0, 0, 1).applyEuler(playerGroup.rotation.clone());
-                var middleDir=currentDir.clone().lerp(nextDir,Math.min(1/currentDir.distanceTo(nextDir)*100,1));
+                var currentDir = oldRot.clone();
+                var nextDir = eval("new THREE.Quaternion(myPlayer.quat._x, myPlayer.quat._y,myPlayer.quat._z, myPlayer.quat._w)");
+                //console.log("next dir", nextDir);
+                var middleDir=currentDir.clone().slerp(nextDir,0.75);
+                //console.log("middle 1",middleDir);
+                middleDir.slerp(nextDir, 0.75);
+                //console.log("middle 2", middleDir);
+                //middleDir =THREE.Quaternion.slerp(currentDir.clone(), nextDir.clone(), middleDir,0.5);
                 
                 
                 
-                camera.lookAt(nextDir.clone().multiplyScalar(-1));
-                oldRot=camera.rotation.clone();
-                camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
+                camera.setRotationFromQuaternion(middleDir.clone());
+                oldRot=middleDir;
+                //camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
                 camera.rotateY(Math.PI * 1);
                 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
                 //camera.rotation.y = -camera.rotation.y;
