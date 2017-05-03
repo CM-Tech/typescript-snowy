@@ -40,7 +40,7 @@ socket
     .on('players', function (data) {
        players=data;
 lastPlayerTime=new Date().getTime();
-if (playerForId(socket.id)!=null) {
+if (playerForId(socket.id)!==null) {
 myPlayer = playerForId(socket.id);
 /*camera.position.x=myPlayer.position.x;
 camera.position.y = myPlayer.position.y+1.5;
@@ -52,7 +52,7 @@ camera.position.z = myPlayer.position.z;
 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
     camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);*/
 inGame=true;
-       }
+       
 var pLen = playerStuff.length + 0;
 for (var i = 0; i < pLen; i++) {
     scene.remove(playerStuff.pop());
@@ -104,7 +104,7 @@ for (var i = 0; i < pLen; i++) {
             }
             playerGroup.add(body);
             //}
-        
+        //console.log(players[i]);
             
             playerGroup.position.x = (players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x;
             playerGroup.position.y = players[i].position.y - worldTerrain.getTiltTermAtWorldCoord(players[i].position.x, players[i].position.z) + worldTerrain.getTiltTermAtWorldCoord((players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x, (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z);
@@ -141,6 +141,7 @@ for (var i = 0; i < pLen; i++) {
             scene.add(playerGroup);
             playerStuff.push(playerGroup);
        }
+}
     });
 var terrainDetail : number = 6;
 var worldTerrain : TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail),0.5,512/8);

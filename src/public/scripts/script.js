@@ -33,7 +33,7 @@ socket
     .on('players', function (data) {
     players = data;
     lastPlayerTime = new Date().getTime();
-    if (playerForId(socket.id) != null) {
+    if (playerForId(socket.id) !== null) {
         myPlayer = playerForId(socket.id);
         /*camera.position.x=myPlayer.position.x;
         camera.position.y = myPlayer.position.y+1.5;
@@ -45,85 +45,86 @@ socket
         camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
             camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);*/
         inGame = true;
-    }
-    var pLen = playerStuff.length + 0;
-    for (var i = 0; i < pLen; i++) {
-        scene.remove(playerStuff.pop());
-    }
-    for (var i = 0; i < players.length; i++) {
-        var playerGroup = new THREE.Object3D();
-        var skis = new THREE.Object3D();
-        var ski = new THREE.Object3D();
-        var skiBaseGeometry = new THREE.BoxGeometry(0.15, 0.025, 2.70);
-        var skiBaseMaterial = new THREE.MeshToonMaterial({ color: 0x888888, specular: 0x777777, shininess: 0.5, shading: THREE.FlatShading });
-        var skiBase = new THREE.Mesh(skiBaseGeometry, skiBaseMaterial);
-        skiBase.position.z = -0.15 / 2;
-        skiBase.castShadow = true;
-        skiBase.receiveShadow = true;
-        ski.add(skiBase);
-        var skiTipGeometry = new THREE.BoxGeometry(0.15, 0.025, 0.3);
-        var skiTipMaterial = new THREE.MeshToonMaterial({ color: 0xFF7777, specular: 0xdF4444, shininess: 0.5, shading: THREE.FlatShading });
-        var skiTip = new THREE.Mesh(skiTipGeometry, skiTipMaterial);
-        skiTip.position.z = 1.35 / 1 + 0.15 / 2;
-        skiTip.castShadow = true;
-        skiTip.receiveShadow = true;
-        ski.add(skiTip);
-        ski.position.y = 0.0125;
-        var skiLeft = ski.clone();
-        skiLeft.position.x = 0.3;
-        var skiRight = ski.clone();
-        skiRight.position.x = -0.3;
-        playerGroup.add(skiLeft);
-        playerGroup.add(skiRight);
-        //if (players[i].clientId !== socket.id) {
-        var bodyGeometry = new THREE.BoxGeometry(1, 1, 1);
-        var coatRuffleGeometry = new THREE.BoxGeometry(1.08, 0.1, 1.08);
-        var bodyMaterial = new THREE.MeshToonMaterial({ color: players[i].color, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
-        var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        var coatRuffle = new THREE.Mesh(coatRuffleGeometry, bodyMaterial);
-        body
-            .position
-            .set(0, 0.5, 0);
-        body.castShadow = true;
-        body.receiveShadow = true;
-        for (var j = 0; j < 5; j++) {
-            var coatRuffleClone = coatRuffle.clone();
-            coatRuffleClone.castShadow = true;
-            coatRuffleClone.receiveShadow = true;
-            coatRuffleClone.position.set(0, (j - 2) * 0.2, 0);
-            body.add(coatRuffleClone);
+        var pLen = playerStuff.length + 0;
+        for (var i = 0; i < pLen; i++) {
+            scene.remove(playerStuff.pop());
         }
-        playerGroup.add(body);
-        //}
-        playerGroup.position.x = (players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x;
-        playerGroup.position.y = players[i].position.y - worldTerrain.getTiltTermAtWorldCoord(players[i].position.x, players[i].position.z) + worldTerrain.getTiltTermAtWorldCoord((players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x, (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z);
-        playerGroup.position.z = (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z;
-        playerGroup.rotation.x = players[i].rotation.x;
-        playerGroup.rotation.y = players[i].rotation.y;
-        playerGroup.rotation.z = players[i].rotation.z;
-        if (players[i].playerId === socket.id) {
-            var currentDir = oldRot.clone();
-            var nextDir = eval("new THREE.Quaternion(myPlayer.quat._x, myPlayer.quat._y,myPlayer.quat._z, myPlayer.quat._w)");
-            //console.log("next dir", nextDir);
-            var middleDir = currentDir.clone().slerp(nextDir, 0.2);
-            //console.log("middle 1",middleDir);
-            middleDir.slerp(nextDir, 0.75);
-            //console.log("middle 2", middleDir);
-            //middleDir =THREE.Quaternion.slerp(currentDir.clone(), nextDir.clone(), middleDir,0.5);
-            camera.setRotationFromQuaternion(middleDir.clone());
-            var newPos = playerGroup.getWorldPosition().clone().add(new THREE.Vector3(0, 1.5, 0).applyQuaternion(middleDir.clone()));
-            camera.position.x = newPos.x;
-            camera.position.y = newPos.y;
-            camera.position.z = newPos.z;
-            oldRot = middleDir;
-            //camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
-            camera.rotateY(Math.PI * 1);
-            camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
-            //camera.rotation.y = -camera.rotation.y;
-            //playerGroup.add(camera);
+        for (var i = 0; i < players.length; i++) {
+            var playerGroup = new THREE.Object3D();
+            var skis = new THREE.Object3D();
+            var ski = new THREE.Object3D();
+            var skiBaseGeometry = new THREE.BoxGeometry(0.15, 0.025, 2.70);
+            var skiBaseMaterial = new THREE.MeshToonMaterial({ color: 0x888888, specular: 0x777777, shininess: 0.5, shading: THREE.FlatShading });
+            var skiBase = new THREE.Mesh(skiBaseGeometry, skiBaseMaterial);
+            skiBase.position.z = -0.15 / 2;
+            skiBase.castShadow = true;
+            skiBase.receiveShadow = true;
+            ski.add(skiBase);
+            var skiTipGeometry = new THREE.BoxGeometry(0.15, 0.025, 0.3);
+            var skiTipMaterial = new THREE.MeshToonMaterial({ color: 0xFF7777, specular: 0xdF4444, shininess: 0.5, shading: THREE.FlatShading });
+            var skiTip = new THREE.Mesh(skiTipGeometry, skiTipMaterial);
+            skiTip.position.z = 1.35 / 1 + 0.15 / 2;
+            skiTip.castShadow = true;
+            skiTip.receiveShadow = true;
+            ski.add(skiTip);
+            ski.position.y = 0.0125;
+            var skiLeft = ski.clone();
+            skiLeft.position.x = 0.3;
+            var skiRight = ski.clone();
+            skiRight.position.x = -0.3;
+            playerGroup.add(skiLeft);
+            playerGroup.add(skiRight);
+            //if (players[i].clientId !== socket.id) {
+            var bodyGeometry = new THREE.BoxGeometry(1, 1, 1);
+            var coatRuffleGeometry = new THREE.BoxGeometry(1.08, 0.1, 1.08);
+            var bodyMaterial = new THREE.MeshToonMaterial({ color: players[i].color, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+            var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            var coatRuffle = new THREE.Mesh(coatRuffleGeometry, bodyMaterial);
+            body
+                .position
+                .set(0, 0.5, 0);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            for (var j = 0; j < 5; j++) {
+                var coatRuffleClone = coatRuffle.clone();
+                coatRuffleClone.castShadow = true;
+                coatRuffleClone.receiveShadow = true;
+                coatRuffleClone.position.set(0, (j - 2) * 0.2, 0);
+                body.add(coatRuffleClone);
+            }
+            playerGroup.add(body);
+            //}
+            //console.log(players[i]);
+            playerGroup.position.x = (players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x;
+            playerGroup.position.y = players[i].position.y - worldTerrain.getTiltTermAtWorldCoord(players[i].position.x, players[i].position.z) + worldTerrain.getTiltTermAtWorldCoord((players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x, (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z);
+            playerGroup.position.z = (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z;
+            playerGroup.rotation.x = players[i].rotation.x;
+            playerGroup.rotation.y = players[i].rotation.y;
+            playerGroup.rotation.z = players[i].rotation.z;
+            if (players[i].playerId === socket.id) {
+                var currentDir = oldRot.clone();
+                var nextDir = eval("new THREE.Quaternion(myPlayer.quat._x, myPlayer.quat._y,myPlayer.quat._z, myPlayer.quat._w)");
+                //console.log("next dir", nextDir);
+                var middleDir = currentDir.clone().slerp(nextDir, 0.2);
+                //console.log("middle 1",middleDir);
+                middleDir.slerp(nextDir, 0.75);
+                //console.log("middle 2", middleDir);
+                //middleDir =THREE.Quaternion.slerp(currentDir.clone(), nextDir.clone(), middleDir,0.5);
+                camera.setRotationFromQuaternion(middleDir.clone());
+                var newPos = playerGroup.getWorldPosition().clone().add(new THREE.Vector3(0, 1.5, 0).applyQuaternion(middleDir.clone()));
+                camera.position.x = newPos.x;
+                camera.position.y = newPos.y;
+                camera.position.z = newPos.z;
+                oldRot = middleDir;
+                //camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
+                camera.rotateY(Math.PI * 1);
+                camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
+                //camera.rotation.y = -camera.rotation.y;
+                //playerGroup.add(camera);
+            }
+            scene.add(playerGroup);
+            playerStuff.push(playerGroup);
         }
-        scene.add(playerGroup);
-        playerStuff.push(playerGroup);
     }
 });
 var terrainDetail = 6;
