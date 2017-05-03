@@ -330,7 +330,7 @@ function initRenderer() {
     renderer.setClearColor(new THREE.Color(100, 128, 208));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
-    effect = new THREE.OutlineEffect(renderer);
+    //effect = new THREE.OutlineEffect(renderer);
 }
 var cube;
 var light;
@@ -401,9 +401,9 @@ function initCube() {
     //scene.add(plane);
 }
 function render() {
-    //renderer.render(scene, camera);
+    renderer.render(scene, camera);
     scene.autoUpdate = true;
-    effect.render(scene, camera);
+    //effect.render(scene, camera);
     requestAnimationFrame(render);
 }
 init();
