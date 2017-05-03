@@ -457,8 +457,8 @@ function initCube() {
     .position
     .set(10, 100, -30);
   light.castShadow = true; // default false
-  light.shadow.mapSize.width = 1024 * 2; // default 512
-  light.shadow.mapSize.height = 1024 * 2; // default 512
+  light.shadow.mapSize.width = 1024 * 8; // default 512
+  light.shadow.mapSize.height = 1024 * 8; // default 512
   light.shadow.camera.near = 0.5; // default 0.5
   light.shadow.camera.far = 1024;
   light.shadowCameraLeft = -512;

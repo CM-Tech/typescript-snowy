@@ -33,7 +33,7 @@ socket
     .on('players', function (data) {
     players = data;
     lastPlayerTime = new Date().getTime();
-    if (playerForId(socket.id) !== null) {
+    if (playerForId(socket.id) != null) {
         myPlayer = playerForId(socket.id);
         /*camera.position.x=myPlayer.position.x;
         camera.position.y = myPlayer.position.y+1.5;
@@ -75,9 +75,6 @@ socket
         skiRight.position.x = -0.3;
         playerGroup.add(skiLeft);
         playerGroup.add(skiRight);
-        var name = createText(players[i].username, 16);
-        name.position.y = 70;
-        playerGroup.add(name);
         //if (players[i].clientId !== socket.id) {
         var bodyGeometry = new THREE.BoxGeometry(1, 1, 1);
         var coatRuffleGeometry = new THREE.BoxGeometry(1.08, 0.1, 1.08);
@@ -416,8 +413,8 @@ function initCube() {
         .position
         .set(10, 100, -30);
     light.castShadow = true; // default false
-    light.shadow.mapSize.width = 1024 * 2; // default 512
-    light.shadow.mapSize.height = 1024 * 2; // default 512
+    light.shadow.mapSize.width = 1024 * 8; // default 512
+    light.shadow.mapSize.height = 1024 * 8; // default 512
     light.shadow.camera.near = 0.5; // default 0.5
     light.shadow.camera.far = 1024;
     light.shadowCameraLeft = -512;
