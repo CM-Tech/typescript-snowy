@@ -23,7 +23,7 @@ function playerForId(id) {
   for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
     var c = players[i];
 
-    if (c.playerId == id) {
+    if (c.playerId === id) {
       return c;
     }
   }
@@ -40,7 +40,7 @@ socket
   .on('players', function(data) {
     players = data;
     lastPlayerTime = new Date().getTime();
-    if (playerForId(socket.id) != null) {
+    if (playerForId(socket.id) !== null) {
       myPlayer = playerForId(socket.id);
       /*camera.position.x=myPlayer.position.x;
       camera.position.y = myPlayer.position.y+1.5;
@@ -203,10 +203,10 @@ function initSocket() {
       //cube.rotation.x = data.rotation.x;
       //cube.rotation.y = data.rotation.y;
       //cube.rotation.z = data.rotation.z;
-      if (tree == null) {
+      if (tree === null) {
         scene.remove(tree);
         tree = getModelByName("tree_1");
-        if (tree != null) {
+        if (tree !== null) {
           //tree.children
           tree
             .children
@@ -222,7 +222,7 @@ function initSocket() {
           //scene.add(tree);
         }
       }
-      if (tree != null) {
+      if (tree !== null) {
         tree.rotation.x = data.rotation.x;
         tree.rotation.y = data.rotation.y;
         tree.rotation.z = data.rotation.z;
