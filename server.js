@@ -222,7 +222,7 @@ var clients = [];
 var players = [];
 var terrainDetail = 6;
 var maxVel = 10;
-var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail), 0.15, 512 / 8);
+var worldTerrain = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail), 0.3, 512 / 8);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
 var Client = (function () {
@@ -372,21 +372,25 @@ function tick() {
         var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
         var terrainNormal = worldTerrain.getSurfaceNormalAtWorldCoord(newPosition.x, newPosition.z);
         var largeNormal = worldTerrain.getSurfaceNormalAtWorldCoordLarge(newPosition.x, newPosition.z);
+        var playerDirVec = new THREE
+            .Vector3(0, 0, 1)
+            .applyEuler(new THREE.Euler(newRotation.x, newRotation.y, newRotation.z, "XYZ"));
+        var playerDirVecLeft = dummy.crossVectors(new THREE.Vector3(0, 1, 0), playerDirVec).clone();
+        var playerDirVecFlat = new THREE
+            .Vector3(playerDirVec.x, 0, playerDirVec.z).normalize();
+        var playerDirVecProjected = playerDirVec.clone().projectOnPlane(largeNormal).normalize();
+        var playerDirVecProjectedFlat = new THREE
+            .Vector3(playerDirVecProjected.x, 0, playerDirVecProjected.z).normalize();
         if (wHeight <= newPosition.y) {
             //console.log("falling");
             newVelocity.setY(newVelocity.y - 5 * (delta / 1000));
+            var Umx = new THREE.Matrix4().lookAt(playerDirVec.clone().lerp(playerDirVecFlat, Math.min(delta / 10 / 10, 1)), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+            var Uqt = new THREE.Quaternion().setFromRotationMatrix(Umx);
+            var Ueu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(Uqt);
+            newRotation = new THREE.Vector3(Ueu.x, Ueu.y, Ueu.z);
         }
         if (wHeight + 0.1 > newPosition.y) {
-            var playerDirVec = new THREE
-                .Vector3(0, 0, 1)
-                .applyEuler(new THREE.Euler(newRotation.x, newRotation.y, newRotation.z, "XYZ"));
-            var playerDirVecLeft = dummy.crossVectors(new THREE.Vector3(0, 1, 0), playerDirVec).clone();
-            var playerDirVecFlat = new THREE
-                .Vector3(playerDirVec.x, 0, playerDirVec.z).normalize();
-            var playerDirVecProjected = playerDirVec.clone().projectOnPlane(largeNormal).normalize();
-            var playerDirVecProjectedFlat = new THREE
-                .Vector3(playerDirVecProjected.x, 0, playerDirVecProjected.z).normalize();
-            var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.lerp(playerDirVec, Math.min((newPosition.y - 0.1 - wHeight) / 0.1, 1) / 100 * delta / 10), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+            var mx = new THREE.Matrix4().lookAt(playerDirVecProjected.clone().lerp(playerDirVec, Math.min((newPosition.y - 0.1 - wHeight) / 0.1, 1) / 100 * delta / 10), new THREE.Vector3(0, 0, 0), largeNormal);
             var qt = new THREE.Quaternion().setFromRotationMatrix(mx);
             var eu = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(qt);
             newRotation = new THREE.Vector3(eu.x, eu.y, eu.z);

@@ -15,6 +15,7 @@ var players:Array<Player>=[];
 var myPlayer:Player=null;
 var lastPlayerTime:number=0;
 var username=prompt("username?");
+var oldRot:THREE.Euler=new THREE.Euler(0,0,0);
 var scene: THREE.Scene,
     camera: THREE.PerspectiveCamera,
     renderer: THREE.WebGLRenderer;
@@ -116,8 +117,15 @@ for (var i = 0; i < pLen; i++) {
                 camera.position.x = newPos.x;
                 camera.position.y = newPos.y;
                 camera.position.z = newPos.z;
+                var currentDir = new THREE.Vector3(0, 0, 1).applyEuler(oldRot);
+                var nextDir = new THREE.Vector3(0, 0, 1).applyEuler(playerGroup.rotation.clone());
+                var middleDir=currentDir.clone().lerp(nextDir,Math.min(1/currentDir.distanceTo(nextDir)*100,1));
                 
-                camera.setRotationFromEuler(playerGroup.rotation.clone());
+                
+                
+                camera.lookAt(nextDir.clone().multiplyScalar(-1));
+                oldRot=camera.rotation.clone();
+                camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
                 camera.rotateY(Math.PI * 1);
                 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
                 //camera.rotation.y = -camera.rotation.y;
@@ -393,7 +401,7 @@ function initCube() {
     light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
-        .set(100, 100, -300);
+        .set(10, 100, -30);
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024*2; // default 512
     light.shadow.mapSize.height = 1024*2; // default 512

@@ -11,6 +11,7 @@ var players = [];
 var myPlayer = null;
 var lastPlayerTime = 0;
 var username = prompt("username?");
+var oldRot = new THREE.Euler(0, 0, 0);
 var scene, camera, renderer;
 function playerForId(id) {
     for (var i = 0, len = players.length; i < Math.min(len, players.length); i++) {
@@ -105,7 +106,12 @@ socket
             camera.position.x = newPos.x;
             camera.position.y = newPos.y;
             camera.position.z = newPos.z;
-            camera.setRotationFromEuler(playerGroup.rotation.clone());
+            var currentDir = new THREE.Vector3(0, 0, 1).applyEuler(oldRot);
+            var nextDir = new THREE.Vector3(0, 0, 1).applyEuler(playerGroup.rotation.clone());
+            var middleDir = currentDir.clone().lerp(nextDir, Math.min(1 / currentDir.distanceTo(nextDir) * 100, 1));
+            camera.lookAt(nextDir.clone().multiplyScalar(-1));
+            oldRot = camera.rotation.clone();
+            camera.setRotationFromEuler(playerGroup.rotation.clone()); //forget about cam animation for now
             camera.rotateY(Math.PI * 1);
             camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
             //camera.rotation.y = -camera.rotation.y;
@@ -364,7 +370,7 @@ function initCube() {
     light = new THREE.DirectionalLight(0xffffff, 0.5);
     light
         .position
-        .set(100, 100, -300);
+        .set(10, 100, -30);
     light.castShadow = true; // default false
     light.shadow.mapSize.width = 1024 * 2; // default 512
     light.shadow.mapSize.height = 1024 * 2; // default 512
