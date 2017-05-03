@@ -120,7 +120,7 @@ for (var i = 0; i < pLen; i++) {
                 var currentDir = oldRot.clone();
                 var nextDir = eval("new THREE.Quaternion(myPlayer.quat._x, myPlayer.quat._y,myPlayer.quat._z, myPlayer.quat._w)");
                 //console.log("next dir", nextDir);
-                var middleDir=currentDir.clone().slerp(nextDir,0.75);
+                var middleDir=currentDir.clone().slerp(nextDir,0.2);
                 //console.log("middle 1",middleDir);
                 middleDir.slerp(nextDir, 0.75);
                 //console.log("middle 2", middleDir);
