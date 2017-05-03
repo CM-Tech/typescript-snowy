@@ -31,11 +31,26 @@ function playerForId(id) {
 }
 var tree: THREE.Object3D = null;
 var models: Array<ModelEntry> = [];
+var playerLabels:Array<HTMLElement>=[];
 console.log("hello client");
 socket.on('spawn', function(data) {
   console.log(data);
 });
+function toScreenXY ( position, camera, renderer:THREE.WebGLRenderer) {
+
+    var pos = position.clone();
+    var projScreenMat = new THREE.Matrix4();
+    projScreenMat.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    projScreenMat.multiplyVector3(pos);
+
+    return {
+        x: (pos.x + 1) * renderer.domElement.getBoundingClientRect().width / 2 + renderer.domElement.getBoundingClientRect().left,
+        y: (- pos.y + 1) * renderer.domElement.getBoundingClientRect().height / 2 + renderer.domElement.getBoundingClientRect().top
+    };
+
+}
 var playerStuff: Array<THREE.Object3D> = [];
+
 socket
     .on('players', function (data) {
        players=data;
@@ -56,6 +71,10 @@ inGame=true;
 var pLen = playerStuff.length + 0;
 for (var i = 0; i < pLen; i++) {
     scene.remove(playerStuff.pop());
+}
+var lLen = playerLabels.length + 0;
+for (var i = 0; i < lLen; i++) {
+   playerLabels.pop().remove();
 }
        for(var i=0;i<players.length;i++){
             var playerGroup: THREE.Object3D = new THREE.Object3D();
@@ -137,6 +156,30 @@ for (var i = 0; i < pLen; i++) {
                 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
                 //camera.rotation.y = -camera.rotation.y;
                 //playerGroup.add(camera);
+            }else{
+                /*var pDir = eval("new THREE.Quaternion(myPlayer.quat._x, myPlayer.quat._y,myPlayer.quat._z, myPlayer.quat._w)");
+                var labelPos: THREE.Vector3 = playerGroup.getWorldPosition().clone().add(new THREE.Vector3(0, 1.5, 0).applyQuaternion(pDir));
+                var xyLabelPos=toScreenXY(labelPos,camera,renderer);
+                var text2 = document.createElement('div');
+                text2.style.position = 'absolute';
+                text2.style.zIndex = "1";    // if you still don't see the label, try uncommenting this
+                text2.style.width = "100px";
+                text2.style.height = "100px";
+                text2.style.backgroundColor = "transparent";
+                text2.innerHTML = players[i].username;
+                text2.style.top =(xyLabelPos.y-50) + 'px';
+                text2.style.left = (xyLabelPos.x - 50) + 'px';
+                document.body.appendChild(text2);*/
+                var text=createText(players[i].username,1);
+                text.position.x = playerGroup.position.x;
+                text.position.y=playerGroup.position.y+2;
+                text.position.z = playerGroup.position.z;
+                playerStuff.push(text);
+                scene.add(text);
+                //playerGroup.add(text);
+                //playerLabels.push(text2);
+                
+                text.lookAt(text.worldToLocal(camera.getWorldPosition()));
             }
             scene.add(playerGroup);
             playerStuff.push(playerGroup);
@@ -174,7 +217,7 @@ function createText(text: string, scale: number): THREE.Object3D {
   var canvas = document.createElement("canvas");
   var ctx = canvas.getContext("2d");
 
-  var detail = 4;
+  var detail = 40;
   var height = scale * detail;
   ctx.font = height + "px Arial";
   var width = ctx.measureText(text).width;
