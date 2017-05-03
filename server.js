@@ -450,7 +450,7 @@ function tick() {
         players[i] = p;
         //console.log(newVelocity,newPosition);
         players[i].velocity = newVelocity;
-        console.log(newQuat);
+        //console.log(newQuat);
         players[i].quat = newQuat.clone();
         eulerFromQuat = new THREE.Euler(p.rotation.x, p.rotation.y, p.rotation.z, "XYZ").setFromQuaternion(newQuat);
         newRotation = new THREE.Vector3(eulerFromQuat.x, eulerFromQuat.y, eulerFromQuat.z);

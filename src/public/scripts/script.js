@@ -95,9 +95,9 @@ socket
         }
         playerGroup.add(body);
         //}
-        playerGroup.position.x = players[i].position.x;
-        playerGroup.position.y = players[i].position.y;
-        playerGroup.position.z = players[i].position.z;
+        playerGroup.position.x = (players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x;
+        playerGroup.position.y = players[i].position.y - worldTerrain.getTiltTermAtWorldCoord(players[i].position.x, players[i].position.z) + worldTerrain.getTiltTermAtWorldCoord((players[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x, (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z);
+        playerGroup.position.z = (players[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z;
         playerGroup.rotation.x = players[i].rotation.x;
         playerGroup.rotation.y = players[i].rotation.y;
         playerGroup.rotation.z = players[i].rotation.z;
