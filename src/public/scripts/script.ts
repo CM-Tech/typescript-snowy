@@ -113,22 +113,24 @@ for (var i = 0; i < pLen; i++) {
             playerGroup.rotation.y = players[i].rotation.y;
             playerGroup.rotation.z = players[i].rotation.z;
             if (players[i].playerId === socket.id) {
-                var newPos: THREE.Vector3 = playerGroup.getWorldPosition().clone().add(new THREE.Vector3(0, 1.5, 0).applyEuler(playerGroup.rotation.clone()));
-                camera.position.x = newPos.x;
-                camera.position.y = newPos.y;
-                camera.position.z = newPos.z;
+                
                 var currentDir = oldRot.clone();
                 var nextDir = eval("new THREE.Quaternion(myPlayer.quat._x, myPlayer.quat._y,myPlayer.quat._z, myPlayer.quat._w)");
                 //console.log("next dir", nextDir);
                 var middleDir=currentDir.clone().slerp(nextDir,0.2);
                 //console.log("middle 1",middleDir);
                 middleDir.slerp(nextDir, 0.75);
+
                 //console.log("middle 2", middleDir);
                 //middleDir =THREE.Quaternion.slerp(currentDir.clone(), nextDir.clone(), middleDir,0.5);
                 
                 
                 
                 camera.setRotationFromQuaternion(middleDir.clone());
+                var newPos: THREE.Vector3 = playerGroup.getWorldPosition().clone().add(new THREE.Vector3(0, 1.5, 0).applyQuaternion(middleDir.clone()));
+                camera.position.x = newPos.x;
+                camera.position.y = newPos.y;
+                camera.position.z = newPos.z;
                 oldRot=middleDir;
                 //camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
                 camera.rotateY(Math.PI * 1);
