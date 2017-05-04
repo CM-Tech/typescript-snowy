@@ -403,7 +403,8 @@ function initCamera() {
 function initRenderer() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(WIDTH, HEIGHT);
-    renderer.setClearColor(new THREE.Color(100, 128, 208));
+    renderer.setClearColor(0xaaaaFF, 1);
+    //renderer.setClearColor(0xff0000, 1);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     //effect = new THREE.OutlineEffect(renderer);
