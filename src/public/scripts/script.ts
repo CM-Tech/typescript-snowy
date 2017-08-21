@@ -7,11 +7,13 @@
 //--
 
 // <reference path="../shared/Player.ts"/>
+// <reference path="../shared/SnowBall.ts"/>
 // <reference path="./OutlineEffect.ts"/>
 // <reference path="../shared/Terrain.ts"/>
 var inGame: boolean = false;
 var socket = io();
 var players: Array<Player> = [];
+var snowBalls: Array<SnowBall> = [];
 var myPlayer: Player = null;
 var lastPlayerTime: number = 0;
 var username = prompt("username?");
@@ -50,6 +52,7 @@ function toScreenXY ( position, camera, renderer:THREE.WebGLRenderer) {
 
 }
 var playerStuff: Array<THREE.Object3D> = [];
+var snowBallStuff: Array<THREE.Object3D> = [];
 
 socket
     .on('players', function (data) {
@@ -151,7 +154,7 @@ for (var i = 0; i < lLen; i++) {
                 camera.position.y = newPos.y;
                 camera.position.z = newPos.z;
                 oldRot=middleDir;
-                //camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
+                camera.setRotationFromEuler(playerGroup.rotation.clone());//forget about cam animation for now
                 camera.rotateY(Math.PI * 1);
                 camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
                 //camera.rotation.y = -camera.rotation.y;
@@ -184,6 +187,49 @@ for (var i = 0; i < lLen; i++) {
             scene.add(playerGroup);
             playerStuff.push(playerGroup);
        }
+}
+    });
+    socket
+    .on('snowBalls', function (data) {
+       snowBalls=data;
+
+       
+var pLen = snowBallStuff.length + 0;
+for (var i = 0; i < pLen; i++) {
+    scene.remove(snowBallStuff.pop());
+}
+
+       for(var i=0;i<snowBalls.length;i++){
+            var playerGroup: THREE.Object3D = new THREE.Object3D();
+            
+            //if (players[i].clientId !== socket.id) {
+                var bodyGeometry = new THREE.BoxGeometry(0.5,0.5,0.5);
+                var coatRuffleGeometry = new THREE.BoxGeometry(1.08, 0.1, 1.08);
+                var bodyMaterial = new THREE.MeshToonMaterial({ color: snowBalls[i].color, specular: 0x000000, shininess: 0, shading: THREE.FlatShading });
+            var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            var coatRuffle = new THREE.Mesh(coatRuffleGeometry, bodyMaterial);
+            
+            body
+                .position
+                .set(0, 0, 0);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            playerGroup.add(body);
+            //}
+        //console.log(players[i]);
+            
+            playerGroup.position.x = (snowBalls[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x;
+            playerGroup.position.y = snowBalls[i].position.y - worldTerrain.getTiltTermAtWorldCoord(snowBalls[i].position.x, snowBalls[i].position.z) + worldTerrain.getTiltTermAtWorldCoord((snowBalls[i].position.x - myPlayer.position.x) % worldTerrain.gridSize + myPlayer.position.x, (snowBalls[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z);
+            playerGroup.position.z = (snowBalls[i].position.z - myPlayer.position.z) % worldTerrain.gridSize + myPlayer.position.z;
+            playerGroup.rotation.x = snowBalls[i].rotation.x;
+            playerGroup.rotation.y = snowBalls[i].rotation.y;
+            playerGroup.rotation.z = snowBalls[i].rotation.z;
+            
+    
+            
+            scene.add(playerGroup);
+            snowBallStuff.push(playerGroup);
+       
 }
     });
 var terrainDetail : number = 6;
@@ -502,14 +548,14 @@ function initCube() {
     .position
     .set(10, 100, -30);
   light.castShadow = true; // default false
-  light.shadow.mapSize.width = 1024 * 8; // default 512
-  light.shadow.mapSize.height = 1024 * 8; // default 512
+  light.shadow.mapSize.width = 1024 * 2; // default 512
+  light.shadow.mapSize.height = 1024 * 2; // default 512
   light.shadow.camera.near = 0.5; // default 0.5
   light.shadow.camera.far = 1024;
-  light.shadowCameraLeft = -512;
-  light.shadowCameraRight = 512;
-  light.shadowCameraTop = 512;
-  light.shadowCameraBottom = -512;
+  light.shadow.camera.left = -512;
+  light.shadow.camera.right = 512;
+  light.shadow.camera.top = 512;
+  light.shadow.camera.bottom = -512;
   light.lookAt(scene.position);
   scene.add(light);
   var ambient = new THREE.AmbientLight(0xffffff, 0.5);
@@ -563,3 +609,9 @@ function onDocumentMouseMove(event) {
   //camera.rotateX(-mouseY / windowHalfY * Math.PI * 1);
   socket.emit("rotation", - mouseX / windowHalfX * Math.PI * 2);
 }
+window.addEventListener("click",function(event){
+  //camera.rotateY( Math.PI * 1);
+  //socket.emit("shoot", camera.quaternion);
+  //camera.rotateY( Math.PI * 1);
+  socket.emit("shoot", camera.quaternion);
+});

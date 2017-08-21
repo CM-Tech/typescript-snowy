@@ -3,6 +3,7 @@
 /// <reference path="./typings/globals/three/index.d.ts" />
 /// <reference path="./typings/modules/express/index.d.ts" />
 /// <reference path="./src/public/shared/Player.ts"/>
+/// <reference path="./src/public/shared/SnowBall.ts"/>
 /// <reference path="./src/public/shared/Terrain.ts"/>
 /*
            (,_    ,_,    _,)
@@ -44,6 +45,36 @@ class Player {
     this
       .position
       .set(x, y, z);
+  }
+}
+class SnowBall {
+  playerId: string;
+  clientId: string;
+  color: number;
+  fireTime: number;
+  damage: number;
+  
+  position: THREE.Vector3;
+  rotation: THREE.Vector3;
+  quat: THREE.Quaternion;
+  velocity: THREE.Vector3;
+  constructor(playerId: string, damage: number) {
+      this.playerId = playerId;
+      this.damage = damage;
+      this.position = new THREE.Vector3(0, 0, 0);
+      this.rotation = new THREE.Vector3(0, 0, 0);
+      this.quat = new THREE.Quaternion(0, 0, 0, 0);
+      this.velocity = new THREE.Vector3(0, 0, 0);
+  }
+  setRotation(x: number, y: number, z: number): void {
+      this
+          .rotation
+          .set(x, y, z);
+  }
+  setPosition(x: number, y: number, z: number): void {
+      this
+          .position
+          .set(x, y, z);
   }
 }
 class TerrainGrid {
@@ -260,8 +291,11 @@ const server = express()
 const io = SocketIO(server);
 var clients: Array<Client> = [];
 var players: Array<Player> = [];
+var snowBalls: Array<SnowBall> = [];
 var terrainDetail: number = 6;
 var maxVel: number = 10;
+var snowBallLife:number=2000;
+var snowBallVel:number=10;
 var worldTerrain: TerrainGrid = new TerrainGrid(Math.pow(2, terrainDetail), Math.pow(2, terrainDetail), 0.3, 512 / 8);
 worldTerrain.generateHeights();
 worldTerrain.generateTrees();
@@ -321,6 +355,17 @@ io.sockets.on('connection', function(socket) {
       //socket.emit('grid', grid);
       socket.on('active', function(data) {
         playerInfo.lastActive = new Date().getTime();
+      });
+      socket.on('shoot', function(data) {
+        var snowBall:SnowBall=new SnowBall(socket.id,10);
+        snowBall.setPosition(playerInfo.position.x,playerInfo.position.y+1,playerInfo.position.z);
+        //console.log(snowBall.position);
+        snowBall.setRotation(playerInfo.rotation.x,playerInfo.rotation.y,playerInfo.rotation.z);
+        snowBall.velocity= new THREE
+        .Vector3(0, 0, -2).applyQuaternion(new THREE.Quaternion(data.x,data.y,data.z,data.w)).add(playerInfo.velocity);
+        snowBall.fireTime=new Date().getTime();
+        snowBall.color=playerInfo.color;
+        snowBalls.push(snowBall);
       });
       socket
         .on('rotation', function(data) {
@@ -508,7 +553,61 @@ function tick() {
     players[i].setPosition(newPosition.x, newPosition.y, newPosition.z);
     players[i].setRotation(newRotation.x, newRotation.y, newRotation.z);
   }
+  for (var i = 0; i < snowBalls.length; i++) {
+    var s: SnowBall = snowBalls[i];
+    var newRotation: THREE.Vector3 = s
+      .rotation.clone();
+    var newQuat: THREE.Quaternion = s
+      .quat.clone();
+    var eulerFromQuat = new THREE.Euler(s.rotation.x, s.rotation.y, s.rotation.z, "XYZ").setFromQuaternion(newQuat);
+    newRotation = new THREE.Vector3(eulerFromQuat.x, eulerFromQuat.y, eulerFromQuat.z);
+    var newPosition: THREE.Vector3 = s
+      .position
+      .add(p.velocity.clone().multiplyScalar(delta / 1000));
+    var newVelocity: THREE.Vector3 = s.velocity.clone();
+    newPosition.setY(newPosition.y );
+    newPosition.setX(((newPosition.x + worldTerrain.gridSize / 2) % worldTerrain.gridSize + worldTerrain.gridSize) % worldTerrain.gridSize - worldTerrain.gridSize / 2);
+    newPosition.setZ(((newPosition.z + worldTerrain.gridSize / 2) % worldTerrain.gridSize + worldTerrain.gridSize) % worldTerrain.gridSize - worldTerrain.gridSize / 2);
+   
+    var vel = newVelocity.length();
+    //if (vel > maxVel) {
+      //newVelocity = newVelocity.normalize().multiplyScalar(maxVel);
+    //}
+    var wHeight = worldTerrain.getHeightAtWorldCoord(newPosition.x, newPosition.z);
+    var playerDirVec: THREE.Vector3 = new THREE
+      .Vector3(0, 0, 1)
+      .applyEuler(new THREE.Euler(newRotation.x, newRotation.y, newRotation.z, "XYZ"));
+    
+    if (wHeight <= newPosition.y) {
+      //console.log("falling");
+      newVelocity.setY(newVelocity.y - 5 * (delta / 1000));
+
+      
+    }
+    if (wHeight-0.2  > newPosition.y) {
+      snowBalls.splice(i,1);
+      console.log("remove ball");
+      i--;
+      continue;
+      //newVelocity.y=1;
+      //newPosition.y=wHeight;
+
+     
+    }
+    vel = newVelocity.length();
+    
+    snowBalls[i] = s;
+    //console.log(newVelocity,newPosition);
+    snowBalls[i].velocity = newVelocity;
+    //console.log(newQuat);
+    snowBalls[i].quat = newQuat.clone();
+    eulerFromQuat = new THREE.Euler(s.rotation.x, s.rotation.y, s.rotation.z, "XYZ").setFromQuaternion(newQuat);
+    newRotation = new THREE.Vector3(eulerFromQuat.x, eulerFromQuat.y, eulerFromQuat.z);
+    snowBalls[i].setPosition(newPosition.x, newPosition.y, newPosition.z);
+    snowBalls[i].setRotation(newRotation.x, newRotation.y, newRotation.z);
+  }
   io.emit('players', players);
+  io.emit('snowBalls', snowBalls);
   //console.log("running TICK",players);
 }
 
